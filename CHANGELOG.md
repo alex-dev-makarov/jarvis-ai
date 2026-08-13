@@ -1,5 +1,43 @@
 # Jarvis Changelog
 
+## Latest — jarvis-perf agent (performance audits, findings only)
+
+New 8th agent: `agents/jarvis-perf.md` (Sonnet — same tier class as
+bugfixer, tradeoff judgement). Audits a declared scope (one file/route,
+whole project only if explicitly asked) for unused JS/CSS and lazy-load
+candidates. Writes findings ONLY to `docs/perf-findings.md` — no Write/Edit
+access to source code, removal goes through the normal advance-gate
+(user confirms → jarvis-executor executes → logs to docs/completed-log.md).
+
+- Every finding gets independent desktop AND mobile verdicts — never a
+  single boolean; explicit divergence callout when they differ
+- Verdict vocabulary is exactly five terms: `remove` · `lazy` · `eager` ·
+  `ssr-false-required` · `defer-third-party` (third-party scripts get
+  deferred, never removed — their bytes don't tree-shake)
+- Three detection tiers: Tier 1 (always, pure static grep/read) / Tier 2
+  (chunk contents, dead-part/duplicate-function patterns — only on
+  request) / Tier 3 (runs an EXISTING coverage script only — never writes
+  its own browser automation)
+- `patternMatch` field compares against `research/perf-patterns.md` only —
+  never invents a resemblance; "no comparable pattern on file" if nothing
+  matches
+- `howFound` field mandatory, specific, reproducible — quoted verbatim by
+  jarvis-executor when it later acts on a finding
+- Tool-call budget ~8-12, scope discipline (never expands beyond what was
+  asked)
+
+New reference file: `research/perf-patterns.md` — two case studies (eBay:
+payload trim, predictive prefetch, edge-cached autosuggest with the
+personalization-in-cache-key caveat; Treebo: bundle analyzer, moment.js
+dead-locale-data pattern, qs/query-string duplicate-by-function pattern,
+PRPL code-splitting, SW precaching, React→Preact as last-resort). This file
+lives in the project (like `scripts/security-agent.mjs`) — `install.sh`
+copies it in via a new Step 3.5, never overwriting an existing copy.
+
+New command: `/jarvis:perf <scope>` — explicit entry point, requires a
+scope (won't silently audit the whole project), ends with a plain
+confirmation prompt before any fix work is handed to jarvis-executor.
+
 ## Latest — token economy + audit trail + visual pipeline
 
 ### Token economy (bounded context per agent)
@@ -81,7 +119,7 @@ Solves: global inner-loop can't know local skill names (differ per project).
   reviewer frontmatter on disk (honest about being a real file edit, with
   revert instructions)
 
-## Agents (7)
+## Agents (8)
 ```
 jarvis-planner        opus    decompose + clarifying questions (bounded recon)
 jarvis-executor       haiku   implement one task (2 files/step)
@@ -90,6 +128,7 @@ jarvis-bugfixer       sonnet  fix defects, read-only scope
 jarvis-explainer      haiku   session-end diff summary (3 tool calls max)
 jarvis-security       opus    SOC 2 + OWASP contextual audit, read-only
 jarvis-visual-planner fable   screenshot→plan, CONDITIONAL, no code
+jarvis-perf            sonnet  perf audit findings only, read-only (~8-12 calls)
 ```
 
 ## Not a local LLM

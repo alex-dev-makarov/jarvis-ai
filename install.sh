@@ -1,24 +1,3 @@
-#!/usr/bin/env bash
-# install.sh — Jarvis harness installer
-#
-# Installs three things into ~/.claude/ (or ~/.claude-<project>/):
-#   commands/jarvis/  — slash commands (/jarvis:advance, etc.)
-#   skills/jarvis/    — loop discipline + ledger schemas
-#   agents/           — subagents with model: tier per agent
-#
-# Also creates jarvis.context.md in the current git project root
-# (if you are inside a git repo) so the harness knows project-specific
-# rules for executor and reviewer briefs.
-#
-# Usage:
-#   ./install.sh                        # installs into ~/.claude/
-#   ./install.sh client                 # installs into ~/.claude-client/
-#   ./install.sh client tg-octopus      # installs into multiple
-#   ./install.sh client --sandbox       # also installs the file-isolation
-#                                          sandbox into the project's
-#                                          .claude/settings.json
-#
-# To change model tiers: edit jarvis.toml, re-run ./install.sh
 
 set -euo pipefail
 
@@ -177,6 +156,30 @@ else
   echo "     or copy jarvis.context.md.example manually."
 fi
 
+# ── Step 3.5: Copy research/perf-patterns.md into the project ─────
+#
+# jarvis-perf reads this file directly from the project (grep-style,
+# same as scripts/security-agent.mjs) — it is NOT passed via subagent
+# brief the way jarvis.context.md is. So it needs to physically live in
+# the project, not just in ~/.claude*/. Never overwrites an existing copy
+# — if the user has customized it, their version wins.
+
+if [ -n "$PROJECT_ROOT" ]; then
+  RESEARCH_DIR="$PROJECT_ROOT/research"
+  PATTERNS_FILE="$RESEARCH_DIR/perf-patterns.md"
+
+  if [ -f "$PATTERNS_FILE" ]; then
+    echo ""
+    echo "→ research/perf-patterns.md already exists — not overwritten"
+  else
+    mkdir -p "$RESEARCH_DIR"
+    cp "$SCRIPT_DIR/research/perf-patterns.md" "$PATTERNS_FILE"
+    echo ""
+    echo "→ Copied research/perf-patterns.md into the project (for jarvis-perf)"
+    echo "  ℹ  Add to git: git add research/perf-patterns.md"
+  fi
+fi
+
 # ── Step 4: File-isolation sandbox (macOS) ────────────────────────
 #
 # By default we only OFFER this — path globs (src/ vs app/ vs lib/) are
@@ -225,7 +228,7 @@ echo "Verify inside Claude Code:"
 echo "  /help    → 'Custom commands' tab should list /jarvis:*"
 echo "  /agents  → 'Library' tab should list jarvis-planner, jarvis-executor,"
 echo "             jarvis-reviewer, jarvis-bugfixer, jarvis-explainer,"
-echo "             jarvis-security, jarvis-visual-planner"
+echo "             jarvis-security, jarvis-visual-planner, jarvis-perf"
 echo ""
 echo "The harness writes a per-action timeline to .jarvis/session-log.md"
 echo "(view it with /jarvis:status). To keep it out of git:"

@@ -49,6 +49,9 @@ jarvis-visual-planner = "visual"    # screenshot → component plan (NO code out
                                     # CONDITIONAL: only invoked when image input
                                     # is detected by inner-loop. Fable is NOT
                                     # called on text-only tasks.
+jarvis-perf            = "standard"  # tradeoff judgement — same tier class as
+                                    # bugfixer. Audits scope, writes findings
+                                    # to docs/perf-findings.md, never edits code.
 
 # ── Screenshot-to-code pipeline config ───────────────────────────
 # Runtime routing rules for the visual pipeline.

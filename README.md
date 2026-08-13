@@ -15,7 +15,8 @@ jarvis.context.md.example    ← per-project rules template (Review/Executor Rul
 │   ├── review.md             /jarvis:review — review git diff
 │   ├── status.md             /jarvis:status — show ledger state
 │   ├── reviewers.md          /jarvis:reviewers — quick-test a model on disk
-│   └── security.md           /jarvis:security — SOC 2-mapped audit (Level 2)
+│   ├── security.md           /jarvis:security — SOC 2-mapped audit (Level 2)
+│   └── perf.md                /jarvis:perf — performance audit, findings only
 ├── agents/                  ← PROPER Claude Code subagents (model: tier per agent)
 │   ├── jarvis-planner.md        model: opus   — decomposes the request
 │   ├── jarvis-executor.md       model: haiku  — implements one task
@@ -23,7 +24,8 @@ jarvis.context.md.example    ← per-project rules template (Review/Executor Rul
 │   ├── jarvis-bugfixer.md       model: sonnet — fixes defects/tests
 │   ├── jarvis-explainer.md      model: haiku  — summarises diff at session end
 │   ├── jarvis-security.md       model: opus   — SOC 2 contextual audit, read-only
-│   └── jarvis-visual-planner.md model: fable  — screenshot→plan (CONDITIONAL)
+│   ├── jarvis-visual-planner.md model: fable  — screenshot→plan (CONDITIONAL)
+│   └── jarvis-perf.md           model: sonnet — perf audit, findings only, read-only
 ├── skills/jarvis/           ← loop discipline + ledger format (loaded via @ref)
 │   ├── ledger/
 │   │   ├── tasks-schema.md
@@ -36,6 +38,10 @@ jarvis.context.md.example    ← per-project rules template (Review/Executor Rul
 │   ├── apply-tiers.mjs       ← reads jarvis.toml, writes model: into agents/*.md
 │   ├── security-agent.mjs    ← Level 1 deterministic scanner (per-project)
 │   └── SECURITY-SETUP.md     ← husky + CI integration guide
+├── research/
+│   └── perf-patterns.md      ← source of truth for jarvis-perf's patternMatch
+│                                field (copied into each PROJECT, not ~/.claude*/ —
+│                                jarvis-perf greps it directly from the repo)
 ├── docs/
 │   └── architecture-concepts.md  ← agents-vs-skills, brief, jarvis.context.md
 └── install.sh                ← applies tiers, copies files, creates jarvis.context.md
@@ -43,8 +49,12 @@ jarvis.context.md.example    ← per-project rules template (Review/Executor Rul
 
 All of the above lives in THIS repo. `install.sh` copies `commands/`,
 `agents/`, and `skills/` into `~/.claude/` (or `~/.claude-<project>/`),
-and creates `jarvis.context.md` in your project's git root. `jarvis.toml`
-and `scripts/` stay in the repo — you edit and re-run them here.
+creates `jarvis.context.md` in your project's git root, and copies
+`research/perf-patterns.md` into the project's own `research/` directory
+(same reasoning as `scripts/security-agent.mjs` — `jarvis-perf` reads it
+directly via `grep`/`cat`, not via a subagent brief, so it has to
+physically live in the project). `jarvis.toml` and `scripts/` stay in the
+repo — you edit and re-run them here.
 
 ## Why agents/ is separate from skills/
 
@@ -76,11 +86,16 @@ orchestrator's context defeats the purpose (you'd pay the context cost twice).
 
 # Per-project CLAUDE_CONFIG_DIR setups (~/.claude-<name>/):
 <<<<<<< HEAD
+<<<<<<< HEAD
 ./install.sh your app
 =======
 ./install.sh client
 ./install.sh client tg-octopus finfamily   # multiple at once
 >>>>>>> 5a83346 (Initial Jarvis harness)
+=======
+./install.sh client
+./install.sh client tg-octopus finfamily   # multiple at once
+>>>>>>> c807dc6 (new harness)
 ```
 
 Restart Claude Code fully after installing — subagent files are only loaded
@@ -143,6 +158,10 @@ Other commands:
 /jarvis:review                    # adversarial code review on git diff
 /jarvis:status                    # show ledger state
 /jarvis:security                  # SOC 2-mapped security audit (Level 2 AI)
+<<<<<<< HEAD
+=======
+/jarvis:perf src/components/Foo.tsx  # performance audit — findings only, never edits code
+>>>>>>> c807dc6 (new harness)
 /jarvis:reviewers opus-5          # quick-test a new model release, see below
 ```
 
