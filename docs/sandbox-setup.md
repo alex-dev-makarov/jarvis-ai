@@ -73,14 +73,55 @@ of that — an agent literally cannot read your `.env` to "helpfully" inline a
 secret, and cannot `curl` a secret out. `jarvis-security` finds leaks that
 already exist; the sandbox stops new ones from being created.
 
+## "I gave it sandbox access, why does it still ask me things?"
+
+This is the most common confusion, so it gets its own section. The sandbox
+controls file/path/command PERMISSIONS — it does not mean "never ask
+anything ever again." Two specific reasons prompts still show up:
+
+**1. A Bash command doesn't match anything in `allow` or `deny`.** Claude
+Code's default for an unmatched command is to ASK, not to allow. If your
+project runs `yarn` instead of `pnpm`, or a script not in the template's
+`allow` list, every one of those commands prompts you individually — not
+because Jarvis is being cautious, but because the sandbox config simply
+doesn't mention that command yet. The fix is almost always: **add the
+specific command to `permissions.allow`**, not to loosen `defaultMode`.
+The v2 template below is deliberately wide — it covers test runners,
+linters, tsc, git read-only operations, and both Jarvis scripts — but your
+project's exact toolchain may still need something added (a different
+package manager, a custom build script, etc).
+
+**2. `defaultMode` is `acceptEdits`, not `bypassPermissions`.**
+`acceptEdits` means reads/edits inside allowed paths happen freely, but any
+Bash command NOT in `allow` still prompts — this is intentional, it's the
+safer default. `bypassPermissions` removes ALL prompts, including the
+`deny` list's enforcement (yes, that means `rm -rf` and reading `.env`
+stop being blocked too) — only use this in a fully disposable, sandboxed
+environment, never on a machine with real credentials or an unbacked-up
+working tree. If you're running Jarvis on your actual laptop against your
+actual repo, stay on `acceptEdits` and fix problem #1 above instead
+(expand `allow`) rather than reaching for `bypassPermissions`.
+
+**Practical diagnosis:** when a prompt appears, read what command it's
+asking about. If it's something routine (a test run, a lint check, `git
+diff`) — add that exact command pattern to `permissions.allow` in your
+`.claude/settings.json` and it won't ask again. If it's something that
+actually deserves a human glance (a commit, a force-push, `rm`) — that's
+the sandbox working as intended, not a bug to route around.
+
 ## Tuning it
 
-Start strict, loosen as real work reveals friction:
+Start with the wide `allow` list in the template, tighten only if you find
+it's letting through something you don't want automatic for your specific
+project:
 
-1. Run a normal `/jarvis:advance` session for a day
-2. Note what prompted that shouldn't have → move to `allow`
-3. Note what ran that shouldn't have → move to `deny`
-4. Within a week the prompts fade and the dangerous stuff stays blocked
+1. Run a normal `/jarvis:advance` session
+2. Note what still prompted that you'd rather auto-approve → add the exact
+   command to `allow`
+3. Note anything that ran automatically that you wish had asked → move it
+   from `allow` to `ask`
+4. Within a session or two the prompts settle into "only the things that
+   actually matter" — commits, pushes, deletions
 
 Adjust the `Edit`/`Write` path globs to match your project layout — if your
 code lives in `app/` and `lib/` instead of `src/`, change the globs

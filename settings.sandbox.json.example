@@ -2,6 +2,7 @@
   "//": "Jarvis file-isolation sandbox for Claude Code on macOS.",
   "//_placement": "Copy to <project>/.claude/settings.json (team-shared, committed) — or .claude/settings.local.json for personal-only overrides.",
   "//_precedence": "Rules evaluate deny > ask > allow. A deny at any level always wins. By default Claude Code can only touch the current working directory and its subdirectories — these rules tighten it further.",
+  "//_why_this_is_wide": "If a Bash command doesn't match anything in allow/deny, Claude Code falls through to asking — even for something completely harmless like `npx eslint`. The allow list below is deliberately broad, covering everything the Jarvis agents actually run (tests, lint, tsc, git read-only, the two Jarvis scripts), specifically so a normal /jarvis:advance run doesn't stop for a prompt on every third command. Tighten it if your project's toolchain differs (e.g. yarn instead of pnpm) — add what you actually use, following the same allow/deny split.",
 
   "permissions": {
     "//_allow": "Auto-approve safe, routine, reversible operations so the loop runs without constant prompts.",
@@ -14,24 +15,52 @@
       "Edit(__tests__/**)",
       "Edit(docs/**)",
       "Edit(.jarvis/**)",
-      "Edit(tasks.md)",
-      "Edit(defects.md)",
+      "Edit(jarvis.context.md)",
       "Write(src/**)",
       "Write(tests/**)",
+      "Write(__tests__/**)",
       "Write(docs/**)",
       "Write(.jarvis/**)",
+
       "Bash(git status)",
+      "Bash(git status:*)",
       "Bash(git diff:*)",
       "Bash(git log:*)",
+      "Bash(git show:*)",
+      "Bash(git branch:*)",
       "Bash(git add:*)",
+      "Bash(git stash:*)",
       "Bash(cat jarvis.context.md)",
+      "Bash(cat docs/tasks.md)",
+      "Bash(cat docs/defects.md)",
+      "Bash(cat docs/questions.md)",
+      "Bash(cat docs/completed-log.md)",
+      "Bash(mkdir -p docs)",
+      "Bash(mkdir -p .jarvis)",
+
       "Bash(npm run:*)",
       "Bash(npm test:*)",
+      "Bash(npm ci:*)",
+      "Bash(npm install:*)",
       "Bash(pnpm run:*)",
       "Bash(pnpm test:*)",
+      "Bash(pnpm install:*)",
+      "Bash(yarn:*)",
+      "Bash(yarn run:*)",
+      "Bash(yarn test:*)",
+
       "Bash(npx jest:*)",
       "Bash(npx tsc:*)",
-      "Bash(node scripts/security-agent.mjs:*)"
+      "Bash(npx eslint:*)",
+      "Bash(npx prettier:*)",
+      "Bash(npx vitest:*)",
+
+      "Bash(node scripts/security-agent.mjs:*)",
+      "Bash(node scripts/apply-tiers.mjs:*)",
+
+      "Bash(git worktree add:*)",
+      "Bash(git worktree remove:*)",
+      "Bash(git merge:*)"
     ],
 
     "//_ask": "Prompt before these — reversible but worth a human glance.",
@@ -44,7 +73,11 @@
       "Bash(mv:*)"
     ],
 
+<<<<<<< HEAD
     "//_deny": "Hard blocks. Deny wins over everything. Two categories: (1) secrets/sensitive files agents must never read, (2) destructive or exfiltration commands.",
+=======
+    "//_deny": "Hard blocks. Deny wins over everything, regardless of what's in allow. Two categories: (1) secrets/sensitive files agents must never read, (2) destructive or exfiltration commands.",
+>>>>>>> 5a83346 (Initial Jarvis harness)
     "deny": [
       "Read(./.env)",
       "Read(./.env.*)",
@@ -101,6 +134,10 @@
     }
   },
 
+<<<<<<< HEAD
   "//_defaultMode": "acceptEdits = Claude reads/edits within allowed paths freely, still prompts for shell commands not in allow. Use 'default' if you want to be prompted for edits too while you build trust.",
+=======
+  "//_defaultMode": "acceptEdits = reads/edits within allowed paths happen freely; Bash commands NOT in the allow list above still prompt. This is the safer default. If /jarvis:advance is still stopping you for things you don't want to review one-by-one, the fix is almost always to ADD the specific command to permissions.allow above — see '//_why_this_is_wide'. Switching defaultMode to 'bypassPermissions' removes ALL prompts including ask/deny enforcement for permission checks — this defeats the purpose of the deny list above (rm -rf, curl, credentials reads all stop being blocked) and should only be used in a fully disposable sandboxed environment, never on a machine with real credentials or an unbacked-up working tree.",
+>>>>>>> 5a83346 (Initial Jarvis harness)
   "defaultMode": "acceptEdits"
 }

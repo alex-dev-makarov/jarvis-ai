@@ -1,5 +1,6 @@
 # Jarvis — minimal harness for Claude Code
 
+Loop-engineering harness inspired by [7mind/cq](https://github.com/7mind/cq), simplified for pure Claude Code (no Nix, no MCP server, no Rust).
 
 ## Architecture
 
@@ -74,7 +75,12 @@ orchestrator's context defeats the purpose (you'd pay the context cost twice).
 ./install.sh
 
 # Per-project CLAUDE_CONFIG_DIR setups (~/.claude-<name>/):
+<<<<<<< HEAD
 ./install.sh your app
+=======
+./install.sh client
+./install.sh client tg-octopus finfamily   # multiple at once
+>>>>>>> 5a83346 (Initial Jarvis harness)
 ```
 
 Restart Claude Code fully after installing — subagent files are only loaded
