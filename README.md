@@ -1,6 +1,5 @@
 # Jarvis — minimal harness for Claude Code
 
-Loop-engineering harness inspired by [7mind/cq](https://github.com/7mind/cq), simplified for pure Claude Code (no Nix, no MCP server, no Rust).
 
 ## Architecture
 
