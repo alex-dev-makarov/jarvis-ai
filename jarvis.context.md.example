@@ -1,0 +1,78 @@
+# Jarvis Project Context — client
+
+# This file is read by the global Jarvis harness at the start of each
+# inner-loop session. It provides project-specific rules to global agents
+# (jarvis-executor, jarvis-reviewer) without modifying them.
+#
+# Sections:
+#   ## Review Rules    → passed to jarvis-reviewer in every I2 brief
+#   ## Executor Rules  → passed to jarvis-executor in every I1 brief
+#
+# Keep each section concise — every line here costs tokens per subagent call.
+#
+# TOKEN BUDGET (check with: node -e "console.log(Math.ceil(require('fs').readFileSync('jarvis.context.md','utf8').length/4))")
+#   Whole file:        < 2,000 tokens  — this goes into EVERY I1 and I2 brief
+#   ## Review Rules:   < 1,000 tokens  — reviewer brief overhead
+#   ## Executor Rules: < 1,000 tokens  — executor brief overhead
+# If you're referencing large skill files via @path, the token cost is the
+# RESOLVED file content, not the @reference line itself — check the actual
+# skill file sizes too. A 5,000-token code-reviewer.md referenced here means
+# every single I2 review call carries that 5,000 tokens, every time.
+#
+# TIP — if you already have local skill files (e.g. .claude/skills/
+# architecture.md, design-agent.md, code-reviewer.md), you don't have to
+# duplicate their content here. Reference them instead:
+#
+#   ## Review Rules
+#   @.claude/skills/architecture.md
+#   @.claude/skills/code-reviewer.md
+#
+# inner-loop.md resolves @references to the full file content before
+# building the reviewer/executor brief — one source of truth, no drift
+# between this file and your skill files. The inline rules below are a
+# fallback for projects that don't have separate skill files yet.
+
+## Stack
+Next.js 14 App Router · TypeScript strict · Redux Toolkit + RTK Query
+CSS Variables · pnpm · Jest ESM
+
+## Review Rules
+
+**Data fetching**
+- RTK Query for ALL remote data — no raw fetch(), no axios
+- Every query MUST have providesTags
+- Every mutation MUST have invalidatesTags
+
+**Styling**
+- CSS Variables only — var(--color-primary), var(--spacing-4)
+- No hardcoded colors (#fff, rgb(), hsl())
+- No inline styles (style={{ }})
+- No Tailwind — this project uses CSS Variables
+
+**Components**
+- Server Components by default
+- use client only when: useState, useEffect, event handlers, browser APIs
+- No server-only imports inside use client files
+
+**Security**
+- Auth tokens: httpOnly cookies only, never localStorage or sessionStorage
+- dangerouslySetInnerHTML: requires DOMPurify (exception — JSON-LD with own escaping)
+- No console.log in production code
+
+**TypeScript**
+- strict: true — no implicit any
+- Explicit return types on exported functions
+- No @ts-ignore without comment explaining why
+
+**Tests**
+- jest.unstable_mockModule — never jest.mock
+- Co-locate: src/components/Foo/__tests__/Foo.test.tsx
+- ESM imports use .js extension
+
+## Executor Rules
+
+- Read max 2 files per step
+- Use grep -n "symbol" src/ instead of reading whole files
+- Never read: node_modules/, dist/, .next/, pnpm-lock.yaml
+- Define RTK Query endpoints in src/store/api/ — one file per domain
+- Co-locate tests: src/components/Foo/__tests__/Foo.test.tsx

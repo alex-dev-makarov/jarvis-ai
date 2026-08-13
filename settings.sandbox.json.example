@@ -1,0 +1,106 @@
+{
+  "//": "Jarvis file-isolation sandbox for Claude Code on macOS.",
+  "//_placement": "Copy to <project>/.claude/settings.json (team-shared, committed) — or .claude/settings.local.json for personal-only overrides.",
+  "//_precedence": "Rules evaluate deny > ask > allow. A deny at any level always wins. By default Claude Code can only touch the current working directory and its subdirectories — these rules tighten it further.",
+
+  "permissions": {
+    "//_allow": "Auto-approve safe, routine, reversible operations so the loop runs without constant prompts.",
+    "allow": [
+      "Read",
+      "Grep",
+      "Glob",
+      "Edit(src/**)",
+      "Edit(tests/**)",
+      "Edit(__tests__/**)",
+      "Edit(docs/**)",
+      "Edit(.jarvis/**)",
+      "Edit(tasks.md)",
+      "Edit(defects.md)",
+      "Write(src/**)",
+      "Write(tests/**)",
+      "Write(docs/**)",
+      "Write(.jarvis/**)",
+      "Bash(git status)",
+      "Bash(git diff:*)",
+      "Bash(git log:*)",
+      "Bash(git add:*)",
+      "Bash(cat jarvis.context.md)",
+      "Bash(npm run:*)",
+      "Bash(npm test:*)",
+      "Bash(pnpm run:*)",
+      "Bash(pnpm test:*)",
+      "Bash(npx jest:*)",
+      "Bash(npx tsc:*)",
+      "Bash(node scripts/security-agent.mjs:*)"
+    ],
+
+    "//_ask": "Prompt before these — reversible but worth a human glance.",
+    "ask": [
+      "Bash(git commit:*)",
+      "Bash(git push:*)",
+      "Bash(git checkout:*)",
+      "Bash(git reset:*)",
+      "Bash(rm:*)",
+      "Bash(mv:*)"
+    ],
+
+    "//_deny": "Hard blocks. Deny wins over everything. Two categories: (1) secrets/sensitive files agents must never read, (2) destructive or exfiltration commands.",
+    "deny": [
+      "Read(./.env)",
+      "Read(./.env.*)",
+      "Read(./**/.env)",
+      "Read(./**/.env.*)",
+      "Read(./**/*.pem)",
+      "Read(./**/*.key)",
+      "Read(./**/*.p12)",
+      "Read(./secrets/**)",
+      "Read(./**/credentials*)",
+      "Read(~/.ssh/**)",
+      "Read(~/.aws/**)",
+      "Read(~/.config/**)",
+      "Read(~/.zshrc)",
+      "Read(~/.bashrc)",
+      "Edit(./.env)",
+      "Edit(./.env.*)",
+      "Edit(package-lock.json)",
+      "Edit(pnpm-lock.yaml)",
+      "Edit(yarn.lock)",
+      "Write(./.env)",
+      "Write(./.env.*)",
+      "Bash(rm -rf:*)",
+      "Bash(curl:*)",
+      "Bash(wget:*)",
+      "Bash(ssh:*)",
+      "Bash(scp:*)",
+      "Bash(sudo:*)",
+      "Bash(git push --force:*)",
+      "Bash(git push -f:*)"
+    ]
+  },
+
+  "//_sandbox": "On macOS, the sandbox layer stops Bash CHILD PROCESSES from reaching paths outside the project — even if Claude somehow decides to try. Permission deny rules stop Claude's own tools; sandbox stops subprocesses spawned by allowed commands. Use both together.",
+  "sandbox": {
+    "enabled": true,
+    "//_network": "Deny network by default; allow only registries a build actually needs.",
+    "network": {
+      "allow": [
+        "registry.npmjs.org",
+        "registry.yarnpkg.com"
+      ]
+    },
+    "//_filesystem": "Confine writes to the project and its scratch dirs; deny the sensitive reads again at the subprocess level (belt and suspenders).",
+    "filesystem": {
+      "denyRead": [
+        "~/.ssh",
+        "~/.aws",
+        "~/.config",
+        "./.env",
+        "./.env.*",
+        "./secrets"
+      ]
+    }
+  },
+
+  "//_defaultMode": "acceptEdits = Claude reads/edits within allowed paths freely, still prompts for shell commands not in allow. Use 'default' if you want to be prompted for edits too while you build trust.",
+  "defaultMode": "acceptEdits"
+}

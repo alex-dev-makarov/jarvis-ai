@@ -1,0 +1,67 @@
+# jarvis.toml — model tier configuration
+#
+# Claude Code subagents do NOT read TOML natively — the model they run on
+# comes from the `model:` field in each agent's own frontmatter
+# (~/.claude/agents/jarvis-*.md). This file is a convenience layer: edit
+# tiers here, then run `node scripts/apply-tiers.mjs` to write the resolved
+# model into every agent's frontmatter in one shot.
+#
+# Workflow:
+#   1. Edit [agent_tiers] below (or [tiers] to redefine what a tier means)
+#   2. node scripts/apply-tiers.mjs
+#   3. ./install.sh   (or ./install.sh <project>)
+#
+# install.sh runs apply-tiers.mjs automatically — you only need to edit
+# this file and re-run install.sh.
+
+# ── Tiers → model alias OR pinned version ──────────────────────────
+# Each tier can be either:
+#   - a bare alias ("sonnet", "opus", "haiku") — Claude Code resolves it
+#     to whatever it currently considers the default model in that family.
+#     Lowest maintenance: you never touch this again, but you also don't
+#     control WHICH point release runs — it can shift under you when
+#     Anthropic updates the alias.
+#   - a pinned version string ("claude-sonnet-4-6", "claude-opus-4-8") —
+#     locks the tier to an exact model. Use this when you want reproducible
+#     behavior (same model every run) or you specifically want a newer/older
+#     point release than whatever the alias currently points to.
+#
+# Check current model ids in Claude Code docs before pinning — an invalid
+# id will make apply-tiers.mjs write a model: value Claude Code can't
+# resolve, and the agent will fail to spawn until you fix it.
+[tiers]
+fast     = "haiku"              # bare alias — fine for cheap/frequent calls
+standard = "sonnet"              # ← change to e.g. "claude-sonnet-4-6" to pin
+frontier = "opus"                # ← change to e.g. "claude-opus-4-8" to pin
+visual   = "fable"   # vision-capable tier; expensive output tokens —
+                     # use ONLY for image understanding, not code generation
+
+# ── Agent → tier ──────────────────────────────────────────────────
+# Change the tier here to change cost/quality tradeoff for that agent.
+[agent_tiers]
+jarvis-planner        = "frontier"  # deep decomposition, runs once per milestone
+jarvis-executor       = "fast"      # narrow context, runs most often — cheap
+jarvis-reviewer       = "frontier"  # adversarial review needs the strongest model
+jarvis-bugfixer       = "standard"  # focused fix from a clear defect description
+jarvis-explainer      = "fast"      # simple diff summarisation
+jarvis-security       = "frontier"  # contextual data-flow analysis
+jarvis-visual-planner = "visual"    # screenshot → component plan (NO code output)
+                                    # CONDITIONAL: only invoked when image input
+                                    # is detected by inner-loop. Fable is NOT
+                                    # called on text-only tasks.
+
+# ── Screenshot-to-code pipeline config ───────────────────────────
+# Runtime routing rules for the visual pipeline.
+# apply-tiers.mjs reads this section to annotate the output table —
+# actual runtime detection lives in skills/jarvis/loop/inner-loop.md.
+#
+# Cost note: Fable output tokens are expensive. visual-planner is
+# instructed to output a compact structured plan (≤600 tokens),
+# never code. Executor (Haiku) handles all code generation from plan.
+[pipeline.screenshot_to_code]
+trigger              = "image-input-detected"  # runtime condition in inner-loop
+visual_planner_agent = "jarvis-visual-planner" # Fable — plan only
+executor_agent       = "jarvis-executor"        # Haiku — code from plan (no vision)
+reviewer_agent       = "jarvis-reviewer"        # Opus — can receive screenshot + code
+                                                # for fidelity check; Fable NOT called again
+max_plan_tokens      = 600   # hard cap on visual-planner output to control Fable cost
