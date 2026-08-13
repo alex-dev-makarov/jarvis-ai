@@ -74,8 +74,7 @@ orchestrator's context defeats the purpose (you'd pay the context cost twice).
 ./install.sh
 
 # Per-project CLAUDE_CONFIG_DIR setups (~/.claude-<name>/):
-./install.sh client
-./install.sh client tg-octopus finfamily   # multiple at once
+./install.sh your app
 ```
 
 Restart Claude Code fully after installing — subagent files are only loaded
