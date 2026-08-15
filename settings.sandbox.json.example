@@ -62,6 +62,10 @@
       "Bash(node scripts/security-agent.mjs:*)",
       "Bash(node scripts/apply-tiers.mjs:*)",
 
+      "Bash(mkdir -p /private/tmp/claude-*)",
+      "Bash(cd /private/tmp/claude-*)",
+      "Bash(cp * /private/tmp/claude-*)",
+
       "Bash(git worktree add:*)",
       "Bash(git worktree remove:*)",
       "Bash(git merge:*)"
@@ -77,15 +81,7 @@
       "Bash(mv:*)"
     ],
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-    "//_deny": "Hard blocks. Deny wins over everything. Two categories: (1) secrets/sensitive files agents must never read, (2) destructive or exfiltration commands.",
-=======
     "//_deny": "Hard blocks. Deny wins over everything, regardless of what's in allow. Two categories: (1) secrets/sensitive files agents must never read, (2) destructive or exfiltration commands.",
->>>>>>> 5a83346 (Initial Jarvis harness)
-=======
-    "//_deny": "Hard blocks. Deny wins over everything, regardless of what's in allow. Two categories: (1) secrets/sensitive files agents must never read, (2) destructive or exfiltration commands.",
->>>>>>> c807dc6 (new harness)
     "deny": [
       "Read(./.env)",
       "Read(./.env.*)",
@@ -142,14 +138,6 @@
     }
   },
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-  "//_defaultMode": "acceptEdits = Claude reads/edits within allowed paths freely, still prompts for shell commands not in allow. Use 'default' if you want to be prompted for edits too while you build trust.",
-=======
   "//_defaultMode": "acceptEdits = reads/edits within allowed paths happen freely; Bash commands NOT in the allow list above still prompt. This is the safer default. If /jarvis:advance is still stopping you for things you don't want to review one-by-one, the fix is almost always to ADD the specific command to permissions.allow above — see '//_why_this_is_wide'. Switching defaultMode to 'bypassPermissions' removes ALL prompts including ask/deny enforcement for permission checks — this defeats the purpose of the deny list above (rm -rf, curl, credentials reads all stop being blocked) and should only be used in a fully disposable sandboxed environment, never on a machine with real credentials or an unbacked-up working tree.",
->>>>>>> 5a83346 (Initial Jarvis harness)
-=======
-  "//_defaultMode": "acceptEdits = reads/edits within allowed paths happen freely; Bash commands NOT in the allow list above still prompt. This is the safer default. If /jarvis:advance is still stopping you for things you don't want to review one-by-one, the fix is almost always to ADD the specific command to permissions.allow above — see '//_why_this_is_wide'. Switching defaultMode to 'bypassPermissions' removes ALL prompts including ask/deny enforcement for permission checks — this defeats the purpose of the deny list above (rm -rf, curl, credentials reads all stop being blocked) and should only be used in a fully disposable sandboxed environment, never on a machine with real credentials or an unbacked-up working tree.",
->>>>>>> c807dc6 (new harness)
   "defaultMode": "acceptEdits"
 }

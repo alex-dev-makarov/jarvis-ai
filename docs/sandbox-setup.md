@@ -109,6 +109,40 @@ diff`) — add that exact command pattern to `permissions.allow` in your
 actually deserves a human glance (a commit, a force-push, `rm`) — that's
 the sandbox working as intended, not a bug to route around.
 
+## Isolated build directories — why prompts still appear for /private/tmp/...
+
+Claude Code sometimes runs a test build in an isolated directory (something
+like `/private/tmp/claude-501/-Users-you-project/build-isolated/`) instead
+of your actual working tree, specifically to avoid leaving build artifacts
+or partial state in your real project if the build fails or gets
+interrupted. Each session gets a **fresh, randomly-suffixed path** — the
+`claude-501` part and the exact directory name differ every time.
+
+This defeats naive path-based allow-listing: you can't pre-approve
+`/private/tmp/claude-501/-Users-you-project/build-isolated/src/**` because
+that exact path only exists for one session. The fix isn't to allow-list
+every possible path (impossible — new random paths appear every session);
+it's to allow-list the **command shape** instead, per Claude Code's
+documented Bash wildcard syntax (wildcards match on the command string
+itself — prefix, suffix, or infix — not on an arbitrary compound path glob):
+
+```json
+"Bash(mkdir -p /private/tmp/claude-*)",
+"Bash(cd /private/tmp/claude-*)",
+"Bash(cp * /private/tmp/claude-*)"
+```
+
+These three cover the routine setup (`mkdir`, `cd`, `cp` copying source
+files INTO the isolated build dir) that repeats every time this happens.
+
+**`rm -rf` is deliberately NOT re-allowed for this pattern** — the global
+`deny` on `Bash(rm -rf:*)` always wins over any `allow`, by design (deny
+beats allow beats ask, unconditionally, per Claude Code's rule evaluation
+order). So cleanup of the isolated build directory will still prompt once
+per session. That's an accepted tradeoff: broad coverage for the routine
+setup commands, one remaining prompt for the one command category
+(`rm -rf`) that's dangerous enough to keep gated everywhere, including here.
+
 ## Tuning it
 
 Start with the wide `allow` list in the template, tighten only if you find
