@@ -46,9 +46,9 @@
       "Bash(npm test:*)",
       "Bash(npm ci:*)",
       "Bash(npm install:*)",
-      "Bash(pnpm run:*)",
-      "Bash(pnpm test:*)",
-      "Bash(pnpm install:*)",
+ "Bash(npm run lint:*)",
+"Bash(npm run typecheck:*)",
+"Bash(npm test:*)"
       "Bash(yarn:*)",
       "Bash(yarn run:*)",
       "Bash(yarn test:*)",
@@ -79,6 +79,10 @@
       "Bash(git reset:*)",
       "Bash(rm:*)",
       "Bash(mv:*)"
+      "Bash(npm run build:*)",
+"Bash(next build:*)",
+"Bash(npm run dev:*)",
+"Bash(next dev:*)"
     ],
 
     "//_deny": "Hard blocks. Deny wins over everything, regardless of what's in allow. Two categories: (1) secrets/sensitive files agents must never read, (2) destructive or exfiltration commands.",
