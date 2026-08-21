@@ -18,8 +18,16 @@ overwrite — always append.
 One line per milestone. Terse — detail lives in PR breakdown below.
 
 ### 2. Current milestone — PR breakdown
-One line per PR/task.
-Detail lives in `./docs/drafts/YYYYMMDD-HHMM-<name>.md`.
+One line per PR/task, 2-4 lines max if extra context is genuinely needed
+(per jarvis-planner.md's own conciseness rule). Detail lives in
+`./docs/drafts/YYYYMMDD-HHMM-<name>.md` — NOT here.
+
+**Hard rule: no paragraph-length "why" explanations under a PR line.**
+If a PR needs a rationale longer than 1-2 sentences, that rationale
+belongs in the plan doc (`docs/drafts/...`), not inline in tasks.md. A
+milestone section in this file should be scannable in a few seconds —
+if scrolling past one milestone takes more than a screen, it's already
+too long for this file.
 
 Optionally note `dependsOn: PR-NN` inline when a PR cannot start until
 another finishes (e.g. it imports a hook the earlier PR creates). This is
@@ -32,8 +40,33 @@ import-order dependencies between files that don't share a path.
 ```
 
 ### 3. Cross-cutting architectural notes (locked)
-Decisions that span multiple PRs.
-Never silently delete — flip `[ ]` to `[x]` when resolved.
+
+**One line per decision, max ~30 words.** State WHAT was decided and
+which PR it lands in — not the full reasoning chain that led there.
+
+```
+- [x] Use httpOnly cookies for auth tokens, not localStorage — lands in PR-02
+- [ ] Retry strategy for failed uploads — undecided, blocks PR-05
+```
+
+**This is explicitly NOT the place for:**
+- Multi-paragraph "рішення" write-ups explaining code mechanisms, quoted
+  line numbers, or the full chain of investigation that led to a decision
+  — that belongs in the plan doc (`docs/drafts/YYYYMMDD-HHMM-<name>.md`)
+  or, if the PR already shipped, in `docs/completed-log.md`'s `Shipped`/
+  `Notes` fields (see completed-log-schema.md)
+- "Explicitly out of scope" sections listing rejected alternatives with
+  their rationale — one line per rejected item max ("Rejected: X (reason
+  in one clause)"), full reasoning goes in the plan doc
+- Risk analysis, verification protocols, or scope boundaries longer than
+  a few bullet lines — these belong in the plan doc too
+
+**Never silently delete — flip `[ ]` to `[x]` when resolved.**
+
+If you notice a milestone's architectural notes growing past ~10-15
+lines, that is the signal to move the detail out to the plan doc and
+leave only the one-line decisions here — do not let it keep growing
+in place.
 
 ### 4. Completed
 One SHORT line per finished PR — see completed-log-schema.md for the full

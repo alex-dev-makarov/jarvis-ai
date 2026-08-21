@@ -146,7 +146,13 @@ missed one risks a harder-to-untangle batch defect.
 2. Reflect into `docs/tasks.md`:
    - milestones section
    - PR breakdown with statuses `[ ]`
-   - cross-cutting architectural notes (brief)
+   - cross-cutting architectural notes — **one line each, ~30 words max**,
+     per tasks-schema.md's limit. State the decision and which PR it lands
+     in, not the reasoning. If a decision genuinely needs its reasoning
+     preserved, that goes in the plan doc from step 1 above, not here —
+     `docs/tasks.md` is read every single loop cycle (O2/O3/O4) and must
+     stay scannable; a milestone with paragraph-length "рішення" write-ups
+     under it is a sign this rule was skipped.
 
 3. Print summary:
 
