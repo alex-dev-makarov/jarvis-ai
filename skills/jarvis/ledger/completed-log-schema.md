@@ -24,11 +24,15 @@ So the split is:
 
 ## What goes in docs/tasks.md instead (replaces the old inline Completed block)
 
-```markdown
-- [x] **PR-01** — Add lazy social-login init module. See completed-log.md#pr-01
+Per tasks-schema.md's table format — a row, not a bullet:
+
+```
+| PR | Scope | Report |
+|---|---|---|
+| PR-01 | Add lazy social-login init module | completed-log.md#pr-01 |
 ```
 
-One line. Status, scope, pointer. Nothing else.
+Three cells. Scope, pointer, nothing else.
 
 ## Entry schema for docs/completed-log.md
 

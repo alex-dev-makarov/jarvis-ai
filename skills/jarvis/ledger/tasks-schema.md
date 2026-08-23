@@ -6,6 +6,24 @@ The authoritative ledger of all planned and completed work.
 Create if it does not exist (including the `docs/` directory). Never
 overwrite — always append.
 
+## Why this schema is a TABLE, not prose
+
+Earlier versions of this schema used word-count limits ("~30 words max",
+"one line per decision") on free-text sections. In practice, across many
+sessions, those limits eroded — a planner writing under time pressure or
+mid-investigation naturally reaches for prose to explain a mechanism, and
+"keep it brief" is not a hard constraint the same way a table column is.
+A milestone that accumulates paragraph-length "Рішення"/"Explicitly out of
+scope" sections is not a planner failing to follow instructions once — it
+is what happens when the format itself allows prose at all.
+
+**The fix: no free-text sections in this file, ever.** Every entry is a
+table row with fixed columns. A table row cannot silently grow into a
+paragraph — there is no column for one. Full reasoning, code mechanisms,
+quoted line numbers, and "why we rejected X" narratives ALWAYS go in the
+plan doc (`docs/drafts/YYYYMMDD-HHMM-<name>.md`), never here, because
+there is structurally nowhere in this file's format to put them.
+
 ## Status markers
 
 ```
@@ -15,64 +33,87 @@ overwrite — always append.
 ## Required sections (in order)
 
 ### 1. Milestones (high-level)
-One line per milestone. Terse — detail lives in PR breakdown below.
 
-### 2. Current milestone — PR breakdown
-One line per PR/task, 2-4 lines max if extra context is genuinely needed
-(per jarvis-planner.md's own conciseness rule). Detail lives in
-`./docs/drafts/YYYYMMDD-HHMM-<name>.md` — NOT here.
-
-**Hard rule: no paragraph-length "why" explanations under a PR line.**
-If a PR needs a rationale longer than 1-2 sentences, that rationale
-belongs in the plan doc (`docs/drafts/...`), not inline in tasks.md. A
-milestone section in this file should be scannable in a few seconds —
-if scrolling past one milestone takes more than a screen, it's already
-too long for this file.
-
-Optionally note `dependsOn: PR-NN` inline when a PR cannot start until
-another finishes (e.g. it imports a hook the earlier PR creates). This is
-read by `parallel-subagents.md` when deciding what can run concurrently —
-without it, independence is inferred from file overlap alone, which misses
-import-order dependencies between files that don't share a path.
+One row per milestone.
 
 ```
-- [ ] **PR-04** — Wire ProductCard to usePagination hook (dependsOn: PR-03)
+| Milestone | Status | Plan |
+|---|---|---|
+| M1 — Auth OTP Telegram login | done | docs/drafts/20260811-1730-auth-drawer-otp-telegram-login.md |
+| M2 — RTK Query baseApi consolidation | in progress | docs/drafts/20260812-2123-rtk-query-baseapi-consolidation.md |
 ```
 
-### 3. Cross-cutting architectural notes (locked)
+### 2. Current milestone — PR table
 
-**One line per decision, max ~30 words.** State WHAT was decided and
-which PR it lands in — not the full reasoning chain that led there.
+One row per PR. Five columns, exactly these, nothing more:
 
 ```
-- [x] Use httpOnly cookies for auth tokens, not localStorage — lands in PR-02
-- [ ] Retry strategy for failed uploads — undecided, blocks PR-05
+| PR | Status | Problem | File | Fix |
+|---|---|---|---|---|
+| PR-01 | done | GTM blocks main thread on every route | src/app/[lang]/layout.tsx | Idle-gate via requestIdleCallback, 2s fallback |
+| PR-02 | done | Chat panel ships even when never opened | src/components/ui/GlobalChatPanel/index.ts | dynamic(ssr:false) + conditional mount |
+| PR-03 | planned | i18n bundles both locales always | src/config/i18n.ts | Split into uk.ts/ru.ts, per-locale wrapper |
 ```
 
-**This is explicitly NOT the place for:**
-- Multi-paragraph "рішення" write-ups explaining code mechanisms, quoted
-  line numbers, or the full chain of investigation that led to a decision
-  — that belongs in the plan doc (`docs/drafts/YYYYMMDD-HHMM-<name>.md`)
-  or, if the PR already shipped, in `docs/completed-log.md`'s `Shipped`/
-  `Notes` fields (see completed-log-schema.md)
-- "Explicitly out of scope" sections listing rejected alternatives with
-  their rationale — one line per rejected item max ("Rejected: X (reason
-  in one clause)"), full reasoning goes in the plan doc
-- Risk analysis, verification protocols, or scope boundaries longer than
-  a few bullet lines — these belong in the plan doc too
+**Column rules — enforced, not suggested:**
+- **Problem:** one clause, what's wrong. No mechanism explanation, no
+  numbers, no "because X causes Y" — that's the plan doc's job.
+- **File:** the primary file(s). If more than 2-3, write the first one
+  and `+N more — see plan doc`, don't list them all in the cell.
+- **Fix:** one clause, what changes. Not how it works internally.
+- **If a row's Problem or Fix cell would need more than ~12 words to be
+  honest** — that is the signal the detail belongs in the plan doc, and
+  this cell should instead say `see plan doc` plus the 3-6 word gist.
+- `dependsOn: PR-NN` goes in a 6th column only when present, omit the
+  column entirely for milestones where nothing depends on anything (don't
+  pad every row with an empty dependsOn cell).
 
-**Never silently delete — flip `[ ]` to `[x]` when resolved.**
+Optional 6th column, only if any row in this milestone needs it:
 
-If you notice a milestone's architectural notes growing past ~10-15
-lines, that is the signal to move the detail out to the plan doc and
-leave only the one-line decisions here — do not let it keep growing
-in place.
+```
+| PR | Status | Problem | File | Fix | dependsOn |
+|---|---|---|---|---|---|
+| PR-04 | planned | ... | ... | ... | PR-03 |
+```
+
+This is read by `parallel-subagents.md` when deciding what can run
+concurrently.
+
+### 3. Architectural decisions (locked)
+
+One row per decision. Not a paragraph, not a bullet with a rationale
+clause attached — a row.
+
+```
+| Decision | Lands in | Reason (one clause) |
+|---|---|---|
+| httpOnly cookies for auth tokens, not localStorage | PR-02 | XSS surface |
+| No experimental.optimizeCss | — | Breaks CSS-variable rules (see plan doc) |
+```
+
+If the "Reason" column needs more than ~8 words to be honest, write
+`see plan doc` there — do not let the cell become a sentence explaining
+the investigation.
+
+**Rejected alternatives get their own table, not a bulleted list with
+paragraphs:**
+
+```
+| Rejected | Why (one clause) |
+|---|---|
+| experimental.cssChunking: 'strict' | Measured worse: 30 files/258KB vs 17/231KB |
+| React → Preact | Ecosystem compatibility risk, last resort only |
+```
 
 ### 4. Completed
-One SHORT line per finished PR — see completed-log-schema.md for the full
-detailed report, which lives in `./docs/completed-log.md`, not here:
+
+One row per finished PR, pointing to the full report — never inline detail.
+
 ```
-- [x] **PR-01** — <scope>. See completed-log.md#pr-01
+| PR | Scope | Report |
+|---|---|---|
+| PR-01 | GTM idle-gate | completed-log.md#pr-01 |
+| PR-02 | Chat panel lazy-load | completed-log.md#pr-02 |
 ```
 
 Why the split: a full prose report per PR (verification traces, notes,
@@ -81,15 +122,25 @@ metrics, cost) bloats docs/tasks.md fast — after 20 PRs, scanning for
 stays a scannable ledger; completed-log.md is where the detail lives for
 whoever wants to read it later.
 
+## What NEVER appears in docs/tasks.md — goes in the plan doc instead
+
+- Code mechanisms, quoted line numbers, function names beyond a File cell
+- Multi-sentence "why" explanations for any decision
+- Measured numbers (bytes, ms, percentages) beyond what fits a table cell
+- Risk analysis, verification protocols, acceptance criteria prose
+- "Explicitly out of scope" narrative — use the Rejected table above instead
+- Any paragraph. If you're writing a paragraph, stop — it belongs in
+  `docs/drafts/YYYYMMDD-HHMM-<name>.md`, and this file gets a table row
+  with `see plan doc` in whichever cell would otherwise hold it.
+
 ## Rules
 
 - Flip `[ ]` → `[~]` when work starts
-- Flip `[~]` → `[x]` AND add the one-line pointer + append the full report
-  to `docs/completed-log.md` when a PR merges (see completed-log-schema.md)
-- Never delete lines — append only
-- When milestone closes: migrate the `[x]` one-liners to
-  `./docs/archive/tasks-<milestone-id>.md`, leave a stub; completed-log.md
-  entries stay put (they're already archival by nature)
+- Flip `[~]` → `[x]` AND add the Completed table row when a PR merges
+- Never delete rows — append only
+- When milestone closes: migrate its PR table to
+  `./docs/archive/tasks-<milestone-id>.md`, leave the Milestones row
+  pointing there; completed-log.md entries stay put (already archival)
 
 ## Skeleton
 
@@ -99,19 +150,31 @@ whoever wants to read it later.
 Status: `[ ]` planned · `[~]` in progress · `[x]` done · `[!]` blocked
 
 ## Milestones
-- [~] **M1** — <one-line goal>
-- [ ] **M2** — <one-line goal>
 
-## Milestone 1 — PR breakdown
-Detail in `./docs/drafts/YYYYMMDD-HHMM-m1-plan.md`
-- [x] **PR-01** — <scope>
-- [~] **PR-02** — <scope>
-- [ ] **PR-03** — <scope>
+| Milestone | Status | Plan |
+|---|---|---|
+| M1 — <goal> | in progress | docs/drafts/YYYYMMDD-HHMM-m1.md |
 
-## Cross-cutting architectural notes (locked)
-- [x] <decision> — <rationale, lands in PR-N>
-- [ ] <open question> — <who/when decides>
+## M1 — PR table
+
+| PR | Status | Problem | File | Fix |
+|---|---|---|---|---|
+| PR-01 | done | ... | ... | ... |
+| PR-02 | planned | ... | ... | ... |
+
+## Architectural decisions (locked)
+
+| Decision | Lands in | Reason (one clause) |
+|---|---|---|
+| ... | PR-01 | ... |
+
+| Rejected | Why (one clause) |
+|---|---|
+| ... | ... |
 
 ## Completed
-- [x] **PR-01** — <scope>. See completed-log.md#pr-01
+
+| PR | Scope | Report |
+|---|---|---|
+| PR-01 | ... | completed-log.md#pr-01 |
 ```

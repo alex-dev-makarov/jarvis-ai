@@ -142,17 +142,24 @@ missed one risks a harder-to-untangle batch defect.
    - success criteria per PR (one line)
    - risks and assumptions found during investigation (only real ones)
    - dependencies between PRs (dependsOn), if any
+   - **all code mechanisms, quoted line numbers, measured numbers, and
+     "why we rejected X" reasoning go here — this is the ONLY place for
+     that content, see step 2**
 
-2. Reflect into `docs/tasks.md`:
-   - milestones section
-   - PR breakdown with statuses `[ ]`
-   - cross-cutting architectural notes — **one line each, ~30 words max**,
-     per tasks-schema.md's limit. State the decision and which PR it lands
-     in, not the reasoning. If a decision genuinely needs its reasoning
-     preserved, that goes in the plan doc from step 1 above, not here —
-     `docs/tasks.md` is read every single loop cycle (O2/O3/O4) and must
-     stay scannable; a milestone with paragraph-length "рішення" write-ups
-     under it is a sign this rule was skipped.
+2. Reflect into `docs/tasks.md` using tasks-schema.md's TABLE format —
+   not prose. Every row is: PR | Status | Problem (one clause) | File |
+   Fix (one clause). Architectural decisions are a table row too:
+   Decision | Lands in | Reason (one clause). Rejected alternatives get
+   their own table: Rejected | Why (one clause).
+
+   **There is no free-text section in docs/tasks.md to write a
+   paragraph into — this is deliberate, not a word-count you're trusting
+   yourself to respect.** If a Problem, Fix, or Reason cell would need
+   more than ~12 words to be honest, write `see plan doc` in that cell
+   instead of writing the long version. `docs/tasks.md` is read every
+   single loop cycle (O2/O3/O4) and must stay scannable — a milestone
+   with paragraph-length "рішення" write-ups is what happens when the
+   file format allows prose at all, so this format doesn't.
 
 3. Print summary:
 

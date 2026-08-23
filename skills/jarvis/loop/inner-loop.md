@@ -399,12 +399,12 @@ field so the context isn't lost if this comes up again later.
 ## I5 — Clean review → close out
 
 When verdict is `go-ahead`:
-- Flip task from `[~]` to `[x]` in `docs/tasks.md`
-- Replace the task line with a one-liner pointing to the detailed report
-  (per completed-log-schema.md) — do NOT write the full prose report
-  inline in `docs/tasks.md`, it belongs in `docs/completed-log.md`:
+- Flip the PR's row in `docs/tasks.md`'s milestone table: `Status` → `[x]`
+- Add a row to the `Completed` table (tasks-schema.md format) pointing to
+  the detailed report — do NOT write the full prose report inline in
+  `docs/tasks.md`, it belongs in `docs/completed-log.md`:
   ```
-  - [x] **PR-NN** — <scope>. See completed-log.md#pr-nn
+  | PR-NN | <scope, few words> | completed-log.md#pr-nn |
   ```
 - Append the full entry to `docs/completed-log.md` (completed-log-schema.md
   format): what shipped, verification, notes, metrics, cost (if known —

@@ -36,7 +36,9 @@ Invoke the `jarvis-planner` subagent (Opus) with:
 
 It writes a plan to `./docs/drafts/YYYYMMDD-HHMM-<name>.md` and
 may ask clarifying questions first — see jarvis-planner.md.
-Reflect its output into docs/tasks.md: milestones + PR breakdown + architectural notes.
+Reflect its output into docs/tasks.md using tasks-schema.md's TABLE format
+(PR | Status | Problem | File | Fix — no free-text sections exist in this
+file for a reason; full reasoning stays in the plan doc).
 
 ## O2 — Pick next task
 
