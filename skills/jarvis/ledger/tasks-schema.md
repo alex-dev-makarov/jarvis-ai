@@ -79,6 +79,27 @@ Optional 6th column, only if any row in this milestone needs it:
 This is read by `parallel-subagents.md` when deciding what can run
 concurrently.
 
+**Separate optional column, `Rounds` — add it once a PR enters its first
+`revise` verdict, not before:**
+
+```
+| PR | Status | Problem | File | Fix | Rounds |
+|---|---|---|---|---|---|
+| PR-04 | [~] | Formula editor hints break in dark mode | src/shared/FormulaEditor/ | Container-based hint positioning | 3 |
+```
+
+This is the durable counter `inner-loop.md`'s I2 step reads and increments
+on every review round — it is what makes the round-4/5 ESCALATE rule
+(inner-loop.md "Round tracking") actually enforceable instead of relying
+on the orchestrator's own memory of how many times it called the
+reviewer. A PR with no `revise` yet has no `Rounds` cell at all — don't
+pre-fill it with `0` for every row, only add the column's value once it's
+needed, same principle as `dependsOn`.
+
+Both `dependsOn` and `Rounds` can coexist as separate optional columns —
+add whichever a given milestone's rows actually need, in whatever order,
+rather than making every PR table carry both regardless of use.
+
 ### 3. Architectural decisions (locked)
 
 One row per decision. Not a paragraph, not a bullet with a rationale

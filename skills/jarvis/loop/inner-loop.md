@@ -317,13 +317,36 @@ or
 ✓ jarvis-reviewer done — verdict: go-ahead, no blockers
 ```
 
+**Before parsing the verdict, read this PR's `Rounds` cell from
+`docs/tasks.md`** (0 / absent if this is the first review). The ESCALATE
+decision below is the ORCHESTRATOR'S to make from that number — do not
+wait for or expect `jarvis-reviewer` to write "— ESCALATE" into its own
+verdict. The reviewer subagent has no visibility into how many times it
+has already been called for this PR (each invocation is an isolated
+context per jarvis-reviewer.md's design) — it structurally cannot know
+this is round 4, so it cannot self-report an escalation. Asking it to is
+a category error, not a strictness setting.
+
 **Parse verdict from FIRST line of reviewer output:**
 - `verdict: go-ahead` → go to I5
-- `verdict: revise` → go to I3
-- `verdict: revise — ESCALATE` → go to I6 immediately
-- anything else → ABSTENTION — log it, repeat I2 (counts as a round)
+- `verdict: revise` → increment `Rounds` in docs/tasks.md, then apply the
+  round-count rule below (Round tracking) to decide I3 vs I6 yourself
+- anything else → ABSTENTION — log it, repeat I2 (counts as a round,
+  increment `Rounds` the same way)
 
-**Track round number.** Increment on every I2 call for this PR.
+**Track round number IN `docs/tasks.md`, not in your own working memory.**
+Add a `Rounds` column to the PR table (tasks-schema.md) the first time a
+PR enters revise — e.g. `| PR-04 | [~] | ... | ... | ... | 1 |` — and
+increment that cell on every subsequent I2 call for that PR, writing the
+new number back to the file immediately, before dispatching the next
+bugfixer. This is not a formality: when multiple PRs are being driven in
+parallel (background agents, `parallel-subagents.md`), or a session spans
+a long gap, a round count that only exists in "what the orchestrator
+remembers narrating" is exactly the kind of state that silently drifts —
+a PR can pass round 5 without the round-4/5 ESCALATE rule below ever
+firing, because nothing forced a check against a written number. Reading
+the cell before every I2 dispatch is what makes the ESCALATE rule
+enforceable rather than aspirational.
 
 ---
 
@@ -440,10 +463,26 @@ Actions:
 
 ## Round tracking
 
+This counter lives in `docs/tasks.md`'s `Rounds` column (tasks-schema.md)
+— not in your own memory of the conversation. Read it before every I2
+dispatch, write the incremented value back immediately after each I2
+call, and apply this rule yourself (the reviewer never decides this,
+see jarvis-reviewer.md):
+
 ```
-PR-NN review rounds: 0
-After each I2 call: increment
-Round 4 with verdict: revise + major findings → I6 (ESCALATE)
-Round 4 with verdict: revise + only minor/nit → continue one more round
-Round 5 any revise → I6 (ESCALATE) regardless of severity
+Rounds cell absent or 0  → this is round 1, proceed normally
+After each I2 call       → increment the Rounds cell, write it back
+Rounds = 4, verdict revise + major findings   → go to I6 (ESCALATE)
+Rounds = 4, verdict revise + only minor/nit   → continue one more round
+Rounds = 5, any revise                         → go to I6 (ESCALATE)
+                                                  regardless of severity
 ```
+
+**Why this has to be file-backed, not remembered:** when multiple PRs run
+concurrently (parallel-subagents.md, background dispatch) or a session
+spans a long gap, "how many times did I call the reviewer for PR-04" is
+exactly the kind of count that silently drifts if it only exists in
+narration — a PR can sail past round 5 with the ESCALATE rule never
+firing because nothing forced a check against a written number before the
+next dispatch. Reading the cell is what makes this rule enforceable
+rather than aspirational.

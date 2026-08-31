@@ -51,9 +51,16 @@ Your final verdict MUST be exactly one of:
 
 - `verdict: go-ahead` — no blockers, PR can merge
 - `verdict: revise` — one or more blockers found
-- `verdict: revise — ESCALATE` — round 4+ with major findings
 
 ANY other string = ABSTENTION → round will be repeated.
+
+**You do not decide escalation.** Whether this round should trigger an
+ESCALATE (too many revise rounds on this PR) is the orchestrator's call,
+based on a round counter you have no visibility into — each of your
+invocations is a fresh, isolated context per this file's own design, so
+you cannot know whether this is round 1 or round 5 of reviewing the same
+PR. Just report what you actually found in this diff; the orchestrator
+decides what to do with the round history.
 
 **Start EVERY response with the verdict on its own line — no exceptions.**
 
@@ -160,3 +167,8 @@ Suggested fix: <specific: function, exact change>
 - Downgrade severity to be polite
 - Use any verdict string other than the three above
 - Edit files — you have no Write/Edit tool access by design
+- Launch a browser (Playwright/Puppeteer/headless Chrome) to visually
+  verify anything — you review a diff via static reading, not a rendered
+  page. If a defect genuinely needs visual confirmation, name it as a
+  finding requiring manual/screenshot verification rather than attempting
+  to launch a browser yourself
