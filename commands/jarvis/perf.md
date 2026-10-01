@@ -1,5 +1,5 @@
 ---
-description: Run a performance audit (unused JS/CSS, lazy-load candidates) on a given scope. Read-only — writes findings to a new per-session file under docs/perf-findings/, never edits code.
+description: Run a performance audit (unused JS/CSS, lazy-load candidates) on a given scope. Read-only — writes findings to a new per-session file under <ledger-root>/<branch-slug>/perf-findings/, never edits code.
 argument-hint: <file/route/component path> — required; defaults to nothing if omitted, this command does NOT audit the whole project unless you explicitly say so
 ---
 
@@ -34,7 +34,7 @@ with:
 - `research/perf-patterns.md`'s content, if found in step 2
 
 It is read-only by design (no Write/Edit tools) — it can only write to a
-NEW file under `docs/perf-findings/` (its own naming convention:
+NEW file under `<ledger-root>/<branch-slug>/perf-findings/` (its own naming convention:
 `YYYYMMDD-HHMM-<slug>.md`, one file per session, never appended to an
 earlier one) via its own Write access to that directory; it cannot touch
 source code.
@@ -50,7 +50,7 @@ file path in your report so the user can find it again.
 
 ```
 ─────────────────────────────────────────────────
-Found N performance findings — written to docs/perf-findings/<filename>.md.
+Found N performance findings — written to <ledger-root>/<branch-slug>/perf-findings/<filename>.md.
 
 Want me to act on any of these? (removal/lazy-loading goes through
 jarvis-executor via the normal advance flow — nothing gets touched

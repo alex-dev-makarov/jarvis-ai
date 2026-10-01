@@ -3,7 +3,8 @@
 The session log is a durable, append-only audit trail of every agent action:
 what agent ran, when, which files it touched, what it did, and what comes next.
 
-Location: `.jarvis/session-log.md` in the project root.
+Location: `.jarvis/<branch-slug>/session-log.md` — branch-scoped, per
+`ledger-location.md`.
 
 ## Why this exists
 

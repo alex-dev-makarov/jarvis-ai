@@ -3,6 +3,7 @@
   "//_placement": "Copy to <project>/.claude/settings.json (team-shared, committed) — or .claude/settings.local.json for personal-only overrides.",
   "//_precedence": "Rules evaluate deny > ask > allow. A deny at any level always wins. By default Claude Code can only touch the current working directory and its subdirectories — these rules tighten it further.",
   "//_why_this_is_wide": "If a Bash command doesn't match anything in allow/deny, Claude Code falls through to asking — even for something completely harmless like `npx eslint`. The allow list below is deliberately broad, covering everything the Jarvis agents actually run (tests, lint, tsc, git read-only, the two Jarvis scripts), specifically so a normal /jarvis:advance run doesn't stop for a prompt on every third command. Tighten it if your project's toolchain differs (e.g. yarn instead of pnpm) — add what you actually use, following the same allow/deny split.",
+
   "permissions": {
     "//_allow": "Auto-approve safe, routine, reversible operations so the loop runs without constant prompts.",
     "allow": [
@@ -20,6 +21,7 @@
       "Write(__tests__/**)",
       "Write(docs/**)",
       "Write(.jarvis/**)",
+
       "Bash(git status)",
       "Bash(git status:*)",
       "Bash(git diff:*)",
@@ -33,50 +35,39 @@
       "Bash(cat docs/defects.md)",
       "Bash(cat docs/questions.md)",
       "Bash(cat docs/completed-log.md)",
+      "Bash(cat docs/perf-findings.md)",
       "Bash(cat research/perf-patterns.md)",
+      "Write(docs/perf-findings.md)",
+      "Edit(docs/perf-findings.md)",
       "Bash(mkdir -p docs)",
       "Bash(mkdir -p .jarvis)",
+      "Bash(npx playwright:*)",
+
       "Bash(npm run:*)",
       "Bash(npm test:*)",
       "Bash(npm ci:*)",
       "Bash(npm install:*)",
-      "Bash(npm run lint:*)",
-      "Bash(npm run typecheck:*)",
+      "Bash(pnpm run:*)",
+      "Bash(pnpm test:*)",
+      "Bash(pnpm install:*)",
       "Bash(yarn:*)",
       "Bash(yarn run:*)",
       "Bash(yarn test:*)",
+
       "Bash(npx jest:*)",
       "Bash(npx tsc:*)",
       "Bash(npx eslint:*)",
       "Bash(npx prettier:*)",
       "Bash(npx vitest:*)",
+
       "Bash(node scripts/security-agent.mjs:*)",
       "Bash(node scripts/apply-tiers.mjs:*)",
-      "Bash(mkdir -p /private/tmp/claude-*)",
-      "Bash(cd /private/tmp/claude-*)",
-      "Bash(cp * /private/tmp/claude-*)",
+
       "Bash(git worktree add:*)",
       "Bash(git worktree remove:*)",
-      "Bash(git merge:*)",
-      "Bash(ls -d docs/jarvis/*/)",
-      "Bash(ls -d .jarvis-ledger/*/)",
-      "Bash(git branch --list:*)",
-      "Bash(git rev-parse:*)",
-      "Bash(grep -c:*)",
-      "Bash(cat docs/jarvis/**)",
-      "Bash(cat .jarvis-ledger/**)",
-      "Write(docs/jarvis/**)",
-      "Edit(docs/jarvis/**)",
-      "Write(.jarvis-ledger/**)",
-      "Edit(.jarvis-ledger/**)",
-      "Bash(mkdir -p docs/jarvis/**)",
-      "Bash(mkdir -p .jarvis-ledger/**)",
-      "Bash(mkdir -p .jarvis/**)",
-      "Write(docs/perf-findings/**)",
-      "Edit(docs/perf-findings/**)",
-      "Write(docs/completed-log.md)",
-      "Edit(docs/completed-log.md)"
+      "Bash(git merge:*)"
     ],
+
     "//_ask": "Prompt before these — reversible but worth a human glance.",
     "ask": [
       "Bash(git commit:*)",
@@ -85,12 +76,11 @@
       "Bash(git reset:*)",
       "Bash(rm:*)",
       "Bash(mv:*)",
-      "Bash(npm run build:*)",
-      "Bash(next build:*)",
-      "Bash(npm run dev:*)",
-      "Bash(next dev:*)"
+      "Bash(npx puppeteer:*)",
+      "Bash(node *playwright*)",
+      "Bash(node *puppeteer*)"
     ],
-    "//_deny": "Hard blocks. Deny wins over everything, regardless of what's in allow. Two categories: (1) secrets/sensitive files agents must never read, (2) destructive or exfiltration commands.",
+
     "deny": [
       "Read(./.env)",
       "Read(./.env.*)",
@@ -123,15 +113,13 @@
       "Bash(git push -f:*)"
     ]
   },
+
   "//_sandbox": "On macOS, the sandbox layer stops Bash CHILD PROCESSES from reaching paths outside the project — even if Claude somehow decides to try. Permission deny rules stop Claude's own tools; sandbox stops subprocesses spawned by allowed commands. Use both together.",
   "sandbox": {
     "enabled": true,
     "//_network": "Deny network by default; allow only registries a build actually needs.",
     "network": {
-      "allow": [
-        "registry.npmjs.org",
-        "registry.yarnpkg.com"
-      ]
+      "allow": ["registry.npmjs.org", "registry.yarnpkg.com"]
     },
     "//_filesystem": "Confine writes to the project and its scratch dirs; deny the sensitive reads again at the subprocess level (belt and suspenders).",
     "filesystem": {
@@ -145,6 +133,6 @@
       ]
     }
   },
-  "//_defaultMode": "acceptEdits = reads/edits within allowed paths happen freely; Bash commands NOT in the allow list above still prompt. This is the safer default. If /jarvis:advance is still stopping you for things you don't want to review one-by-one, the fix is almost always to ADD the specific command to permissions.allow above — see '//_why_this_is_wide'. Switching defaultMode to 'bypassPermissions' removes ALL prompts including ask/deny enforcement for permission checks — this defeats the purpose of the deny list above (rm -rf, curl, credentials reads all stop being blocked) and should only be used in a fully disposable sandboxed environment, never on a machine with real credentials or an unbacked-up working tree.",
-  "defaultMode": "acceptEdits"
+
+  "//_defaultMode": "acceptEdits = Claude reads/edits within allowed paths freely, still prompts for shell commands not in allow. Use 'default' if you want to be prompted for edits too while you build trust."
 }

@@ -10,21 +10,35 @@ say which one and why, before diving into the inner loop.
 
 ---
 
-## Derive predicates (before every decision)
+## O0 — Resolve the ledger location (once, at session start)
 
-Read `docs/tasks.md` and `docs/defects.md`. Compute:
+Per `ledger-location.md`: resolve the ledger root (`.jarvis-ledger/` if it
+exists, else `docs/jarvis/`) and the branch slug. Every path below that
+says `tasks.md` / `defects.md` / `questions.md` means
+`<ledger-root>/<branch-slug>/<file>`. Narrate it once:
 
 ```
-P-plan    = docs/tasks.md has no PR breakdown yet (need planning)
-P-execute = docs/tasks.md has [ ] or [~] tasks (work to do)
-P-review  = docs/defects.md has open defects (fixes needed)
+→ Ledger: docs/jarvis/feat-auth-otp/
+```
+
+Re-resolve the slug before every ledger WRITE, not just here — a session
+can outlive a `git checkout`. See ledger-location.md.
+
+## Derive predicates (before every decision)
+
+Read `tasks.md` and `defects.md` (branch-scoped, per O0). Compute:
+
+```
+P-plan    = tasks.md has no PR breakdown yet (need planning)
+P-execute = tasks.md has [ ] or [~] tasks (work to do)
+P-review  = defects.md has open defects (fixes needed)
 ```
 
 **Stop ONLY when ALL three are FALSE.**
 
 ---
 
-## O1 — Seed the plan (only if docs/tasks.md has no breakdown)
+## O1 — Seed the plan (only if tasks.md has no breakdown)
 
 Invoke the `jarvis-planner` subagent (Opus) with:
 - the full user request verbatim
@@ -34,11 +48,31 @@ Invoke the `jarvis-planner` subagent (Opus) with:
   etc.) rather than leaving that choice for EXECUTOR to guess at later
   (see jarvis-planner.md Step 1 and jarvis-executor.md's Does NOT)
 
-It writes a plan to `./docs/drafts/YYYYMMDD-HHMM-<name>.md` and
+It writes a plan to `<ledger-root>/<branch-slug>/drafts/YYYYMMDD-HHMM-<name>.md` and
 may ask clarifying questions first — see jarvis-planner.md.
-Reflect its output into docs/tasks.md using tasks-schema.md's TABLE format
+Reflect its output into tasks.md using tasks-schema.md's TABLE format
 (PR | Status | Problem | File | Fix — no free-text sections exist in this
 file for a reason; full reasoning stays in the plan doc).
+
+## O1.5 — Plan checkpoint (optional, off by default)
+
+Separate from O1's clarifying questions: those resolve ambiguity so a plan
+CAN be written; this reviews the plan once it EXISTS (scope right?
+sequencing right? anything missing?).
+
+**Only runs if `jarvis.context.md` sets a `checkpoint:` line.** No line →
+skip to O2, current behavior unchanged.
+
+```
+checkpoint: plan            # pause on every milestone
+checkpoint: plan-if-risky   # pause only on milestones jarvis-planner
+                            # marked HIGH in tasks.md's Risk column
+```
+
+When it applies: print the milestone's PR table + plan doc path, ask
+`"Plan for <milestone> ready — N PRs. Proceed?"`, and **stop** until the
+user replies. Interpret naturally: yes → O2; corrections → have
+jarvis-planner revise those rows first; no → wait for redirection.
 
 ## O2 — Pick next task
 
@@ -46,7 +80,7 @@ file for a reason; full reasoning stays in the plan doc).
 → Starting PR-02: Add usePagination hook to ProductList
 ```
 
-Scan docs/tasks.md for next `[ ]` in current milestone PR breakdown.
+Scan tasks.md for next `[ ]` in current milestone PR breakdown.
 Flip it to `[~]`.
 If current milestone fully `[x]` → move to next milestone (narrate that
 transition too: `→ Milestone M1 complete. Starting M2: ...`).
@@ -189,7 +223,7 @@ See session-end.md.
 
 The ledger is durable. The next `/jarvis:advance` resumes exactly where you left off.
 No need to "wrap up cleanly" or "write a summary handoff".
-Just stop mid-session — the `docs/tasks.md` `[~]` entry IS the resume point.
+Just stop mid-session — the `tasks.md` `[~]` entry IS the resume point.
 
 **Forbidden stop rationalisations — if you find yourself writing any of these,
 DELETE the thought and CONTINUE:**
@@ -204,15 +238,15 @@ DELETE the thought and CONTINUE:**
 - "the next stage is large"
 - "I have done enough this turn"
 
-**The test:** if docs/tasks.md has `[ ]` items and none are `[!]` blocked —
+**The test:** if tasks.md has `[ ]` items and none are `[!]` blocked —
 **there is no legitimate stop. Keep going.**
 
 ---
 
 ## M-AMBIENT
 
-Tasks that don't belong to any milestone go under `## M-AMBIENT` in docs/tasks.md.
-Out-of-scope defects found during review go under `## M-AMBIENT` in docs/defects.md.
+Tasks that don't belong to any milestone go under `## M-AMBIENT` in tasks.md.
+Out-of-scope defects found during review go under `## M-AMBIENT` in defects.md.
 
 ---
 

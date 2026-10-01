@@ -3,6 +3,7 @@ description: Run SOC 2-mapped security audit on current git diff or specified fi
 argument-hint: [optional file paths] — defaults to git diff HEAD
 ---
 
+@~/.claude/skills/jarvis/ledger/ledger-location.md
 @~/.claude/skills/jarvis/ledger/defects-schema.md
 
 ## Steps
@@ -39,10 +40,11 @@ Expect strict JSON per security.md schema:
 
 If JSON malformed → report and stop. Do NOT retry silently.
 
-### 5. Write findings to docs/defects.md
+### 5. Write findings to this branch's defects.md
 
-For each `critical` or `high` finding:
-- Append to `docs/defects.md` per `defects-schema.md` format
+Resolve the path per ledger-location.md first. For each `critical` or
+`high` finding:
+- Append to `<ledger-root>/<branch-slug>/defects.md` per `defects-schema.md`
 - Severity maps directly: critical → major, high → major, medium → minor, low → nit
 - Include SOC 2 control in description: `[CC6.1] <issue>`
 
@@ -81,7 +83,7 @@ Security findings can involve real secrets (rotate a key), real auth flows
 anything touches them, unlike a routine lint defect from a normal PR review
 round.
 
-When writing each defect to `docs/defects.md` in step 5, append one extra line
+When writing each defect to `defects.md` in step 5, append one extra line
 to the entry that the loop's predicate logic checks before touching it:
 
 ```

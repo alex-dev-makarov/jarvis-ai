@@ -2,100 +2,53 @@
 
 Drives one PR/task from planned to clean-reviewed and committed.
 
-## Live narration (do this in your own chat response, not just the log)
+## Live narration
 
-The user is watching this run in real time. **Claude Code's progress
-indicator (spinner + elapsed time) is not enough on its own — it shows
-nothing about WHICH agent is running or WHY.** You must produce actual
-text output between subagent calls for the user to see anything beyond a
-generic spinner.
+Claude Code's spinner shows elapsed time, not WHICH agent is running or
+why. Only your own text output between Task calls gives the user that.
 
-**This means: do not chain multiple Task tool calls back-to-back in the
-same turn without text between them.** If I1→I2→I3→I4 all fire as tool
-calls with no narration text separating them, the user sees one long
-spinner and nothing else until the very end — that is the failure mode
-this section exists to prevent.
-
-Before invoking any subagent, write one line of text (not a tool call)
-saying what you're about to do and why. Let that text actually render, THEN
-invoke the subagent. After it returns, write one line saying what happened
-and what's next — again, real text output, before moving to the next tool
-call.
-
-This is IN ADDITION to the session-log entry below — the log is the durable
-record, this is the live narration the user reads as it happens.
-
-Format — short, no preamble, no markdown headers mid-flow:
+**Never chain Task calls back-to-back without text between them.** One
+line before each subagent (what + why), one line after (outcome + next).
 
 ```
-→ Invoking jarvis-executor (Haiku) on PR-02: add usePagination hook
-
-  [subagent runs]
-
-✓ jarvis-executor done — created usePagination.ts, modified ProductList.tsx
-→ Invoking jarvis-reviewer (Opus) to check PR-02 diff
+✗ WRONG                      ✓ RIGHT
+[Task: executor]             → jarvis-executor (Haiku) on PR-02: pagination hook
+[Task: reviewer]             [Task: executor]
+[Task: bugfixer]             ✓ done — created usePagination.ts
+[Task: reviewer]             → jarvis-reviewer (Opus) checking PR-02 diff
+"PR-02 is done."             [Task: reviewer]
+                             ✓ verdict: revise (2 findings)
+4 calls, zero narration,     → jarvis-bugfixer (Sonnet) on 2 defects
+36min of blank spinner       ...
 ```
 
-If a subagent's own step involves multiple internal actions (e.g. planner
-asking questions, reviewer finding issues) — summarize the outcome in 1-2
-lines, don't dump the subagent's full raw output. The user wants to follow
-the STORY (who's working, on what, what happened), not read every token
-each subagent produced.
+Summarize a subagent's outcome in 1-2 lines — never dump its raw output.
+For a parallel group: one line for the dispatch, one per result as they
+return. This is separate from the session log below: the log is durable
+record, this is what the user watches live.
 
-**Never go silent for more than one subagent call.** If dispatching a
-parallel group (parallel-subagents.md), narrate the whole group as one
-line ("→ Dispatching 3 parallel executors: PR-04, PR-05, PR-06") then one
-line per result as they come back — don't wait until all three finish to
-say anything.
+## Branch check before every ledger write
 
-**Concretely, what NOT to do (this is the bug this section fixes):**
-```
-[Task: jarvis-executor]
-[Task: jarvis-reviewer]
-[Task: jarvis-bugfixer]
-[Task: jarvis-reviewer]
-"PR-02 is done."
-```
-Four tool calls, zero narration, user sees only a spinner for the whole
-duration, then one line at the end. This is wrong even if it's faster to
-write — the user loses the ability to follow along or intervene.
-
-**What TO do instead:**
-```
-→ Invoking jarvis-executor (Haiku) on PR-02: add usePagination hook
-[Task: jarvis-executor]
-✓ jarvis-executor done — created usePagination.ts, modified ProductList.tsx
-→ Invoking jarvis-reviewer (Opus) to check PR-02 diff
-[Task: jarvis-reviewer]
-✓ jarvis-reviewer done — verdict: revise (2 findings)
-→ Invoking jarvis-bugfixer (Sonnet) on 2 defects
-[Task: jarvis-bugfixer]
-✓ jarvis-bugfixer done — both fixed
-→ Re-checking with jarvis-reviewer (Opus)
-[Task: jarvis-reviewer]
-✓ jarvis-reviewer done — verdict: go-ahead
-→ PR-02 committed
-```
-Same four tool calls, but each one is bracketed by real text the user
-actually sees rendering as it happens.
+Re-resolve the slug (ledger-location.md) before each ledger write — a
+session can outlive a `git checkout`. If it differs from O0's: **stop,
+write nothing**, name both branches, ask which to continue on.
 
 ## Session logging (do this after EVERY subagent returns)
 
-Maintain `.jarvis/session-log.md` per session-log-schema.md. After each
+Maintain `.jarvis/<branch-slug>/session-log.md` (ledger-location.md)
+per session-log-schema.md. After each
 subagent (executor, reviewer, bugfixer, visual-planner) returns, append one
 entry recording: time, agent, model, files touched (with created/modified/
 read-only tags), what it did, and what comes next.
 
 ```bash
-mkdir -p .jarvis
+mkdir -p .jarvis/<branch-slug>
 # append entry after each subagent — see session-log-schema.md for format
 ```
 
-This is orchestrator work — you write the entry based on what the subagent
-reported back. It costs almost nothing (a text append) and gives a scannable
-timeline. If `.jarvis/session-log.md` doesn't exist yet, create it with a
-session header first. Never block the loop on logging — if unsure of exact
-tokens, omit that field rather than guessing.
+Orchestrator work, costs ~nothing. Create the file with a session header
+if absent. Never block the loop on logging — omit a field rather than
+guess at it.
 
 ## Project context (load once per session)
 
@@ -145,7 +98,7 @@ Check if the current task contains an image input (screenshot, mockup, design):
 ```
 Image input is present when ANY of:
   - The task message contains an attached image
-  - docs/tasks.md entry has a field: image: <path> or screenshot: <path>
+  - tasks.md entry has a field: image: <path> or screenshot: <path>
   - The user's original request mentioned "screenshot", "mockup", "design file",
     "figma", "from this image", "implement this UI"
 ```
@@ -318,7 +271,7 @@ or
 ```
 
 **Before parsing the verdict, read this PR's `Rounds` cell from
-`docs/tasks.md`** (0 / absent if this is the first review). The ESCALATE
+`tasks.md`** (0 / absent if this is the first review). The ESCALATE
 decision below is the ORCHESTRATOR'S to make from that number — do not
 wait for or expect `jarvis-reviewer` to write "— ESCALATE" into its own
 verdict. The reviewer subagent has no visibility into how many times it
@@ -329,12 +282,12 @@ a category error, not a strictness setting.
 
 **Parse verdict from FIRST line of reviewer output:**
 - `verdict: go-ahead` → go to I5
-- `verdict: revise` → increment `Rounds` in docs/tasks.md, then apply the
+- `verdict: revise` → increment `Rounds` in tasks.md, then apply the
   round-count rule below (Round tracking) to decide I3 vs I6 yourself
 - anything else → ABSTENTION — log it, repeat I2 (counts as a round,
   increment `Rounds` the same way)
 
-**Track round number IN `docs/tasks.md`, not in your own working memory.**
+**Track round number IN `tasks.md`, not in your own working memory.**
 Add a `Rounds` column to the PR table (tasks-schema.md) the first time a
 PR enters revise — e.g. `| PR-04 | [~] | ... | ... | ... | 1 |` — and
 increment that cell on every subsequent I2 call for that PR, writing the
@@ -350,13 +303,13 @@ enforceable rather than aspirational.
 
 ---
 
-## I3 — Update docs/defects.md
+## I3 — Update defects.md
 
 For every finding in reviewer output:
-- Append full structured entry to docs/defects.md (defects-schema.md format)
+- Append full structured entry to defects.md (defects-schema.md format)
 - Assign IDs sequentially: `PR-NN-D01`, `PR-NN-D02`, ...
 - IDs never change once assigned — even after fix
-- Flip current task to `[~]` in docs/tasks.md (still in progress)
+- Flip current task to `[~]` in tasks.md (still in progress)
 
 Do this yourself — it is orchestration work, not subagent work.
 
@@ -422,10 +375,10 @@ field so the context isn't lost if this comes up again later.
 ## I5 — Clean review → close out
 
 When verdict is `go-ahead`:
-- Flip the PR's row in `docs/tasks.md`'s milestone table: `Status` → `[x]`
+- Flip the PR's row in `tasks.md`'s milestone table: `Status` → `[x]`
 - Add a row to the `Completed` table (tasks-schema.md format) pointing to
   the detailed report — do NOT write the full prose report inline in
-  `docs/tasks.md`, it belongs in `docs/completed-log.md`:
+  `tasks.md`, it belongs in `docs/completed-log.md`:
   ```
   | PR-NN | <scope, few words> | completed-log.md#pr-nn |
   ```
@@ -455,7 +408,7 @@ Fires when:
 - Ambiguous requirement needs user judgement
 
 Actions:
-- Mark task `[!]` in docs/tasks.md
+- Mark task `[!]` in tasks.md
 - Record exact blocker: what is the unresolved question
 - Escalate to session-end.md
 
@@ -463,7 +416,7 @@ Actions:
 
 ## Round tracking
 
-This counter lives in `docs/tasks.md`'s `Rounds` column (tasks-schema.md)
+This counter lives in `tasks.md`'s `Rounds` column (tasks-schema.md)
 — not in your own memory of the conversation. Read it before every I2
 dispatch, write the incremented value back immediately after each I2
 call, and apply this rule yourself (the reviewer never decides this,

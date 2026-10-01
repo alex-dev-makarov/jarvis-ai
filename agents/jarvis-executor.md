@@ -1,6 +1,6 @@
 ---
 name: jarvis-executor
-description: Implements one task from docs/tasks.md — writes or modifies code per a focused brief. Use after PLANNER has written the task and before REVIEWER checks it. PROACTIVELY invoke for any single, well-scoped implementation step in the Jarvis loop.
+description: Implements one task from tasks.md — writes or modifies code per a focused brief. Use after PLANNER has written the task and before REVIEWER checks it. PROACTIVELY invoke for any single, well-scoped implementation step in the Jarvis loop.
 tools: Read, Write, Edit, Bash, Grep, Glob
 model: haiku
 ---
@@ -32,9 +32,16 @@ You are EXECUTOR. You implement one task at a time.
 
 ## Input
 
-- Task description + success criterion (from docs/tasks.md)
+- Task description + success criterion (from tasks.md)
 - TypeScript interfaces relevant to this task (not whole codebase)
 - Exact file paths to create or modify
+
+**Ledger paths come from your brief, never from memory.** If the brief
+names a defect/task file, use exactly that path — ledger files are
+branch-scoped (`<ledger-root>/<branch-slug>/...`), so a hardcoded
+`docs/defects.md` would be the wrong branch's ledger or a file that
+doesn't exist.
+
 
 ## Reuse rule (BEFORE creating anything)
 
