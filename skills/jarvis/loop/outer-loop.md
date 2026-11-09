@@ -10,6 +10,29 @@ say which one and why, before diving into the inner loop.
 
 ---
 
+## Bookkeeping script — use it, don't reimplement it
+
+`node .jarvis/bin/jarvis.mjs` does the deterministic parts of this loop in
+one call each and prints a compact answer. Reading ledger files in full,
+chaining sed/grep, and running tsc/eslint/jest as separate calls is where
+orchestrator tokens go — the script replaces all of it.
+
+| Instead of | Run |
+|---|---|
+| O0 slug + predicates + reading tasks.md to pick O2's task | `jarvis.mjs ctx` |
+| editing a Status cell by hand | `jarvis.mjs set PR-NN wip --branch <slug>` |
+| counting review rounds yourself (I2) | `jarvis.mjs round PR-NN revise major --branch <slug>` |
+| typecheck + lint + test as separate calls | `jarvis.mjs check --files <changed files>` |
+| cross-branch counts | `jarvis.mjs overview` |
+
+Pass `--branch <slug>` (as `ctx` printed it) on every write: the script
+refuses with BRANCH_CHANGED if the user switched branches mid-session —
+the mid-session check, enforced rather than remembered. Its output is the
+rule executed: follow CLOSE / FIX / REPEAT_REVIEW / ESCALATE as printed.
+Read a ledger file in full only for content the script doesn't print
+(a defect's description). If `.jarvis/bin/jarvis.mjs` is missing, tell
+the user to re-run install.sh, then fall back to the manual steps below.
+
 ## Derive predicates (before every decision)
 
 Read `docs/tasks.md` and `docs/defects.md`. Compute:

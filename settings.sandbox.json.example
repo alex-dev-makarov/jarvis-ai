@@ -61,6 +61,7 @@
 
       "Bash(node scripts/security-agent.mjs:*)",
       "Bash(node scripts/apply-tiers.mjs:*)",
+      "Bash(node .jarvis/bin/jarvis.mjs:*)",
 
       "Bash(mkdir -p /private/tmp/claude-*)",
       "Bash(cd /private/tmp/claude-*)",

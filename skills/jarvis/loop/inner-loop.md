@@ -461,6 +461,14 @@ Actions:
 
 ---
 
+## Verification and rounds — via the script
+
+After a subagent returns, verify with ONE call, noise already filtered:
+`node .jarvis/bin/jarvis.mjs check --files <files it touched>`.
+After each I2 verdict: `jarvis.mjs round PR-NN <go-ahead|revise|abstain>
+[major|minor] --branch <slug>` — it writes the Rounds cell and prints the
+decision from the rule below. Follow what it prints.
+
 ## Round tracking
 
 This counter lives in `docs/tasks.md`'s `Rounds` column (tasks-schema.md)

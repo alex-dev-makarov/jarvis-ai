@@ -118,6 +118,10 @@ an uncapped run that quietly turned into open-ended exploration.
 
 ## Does
 
+Reproduce and confirm with `node .jarvis/bin/jarvis.mjs check test --files
+<failing test or its source file>` — one call, output already trimmed to
+the failure lines. Use it instead of raw jest/tsc runs piped through tail.
+
 1. Run `npx jest --testPathPattern=<file> 2>&1 | tail -80` ONCE to reproduce
    — this is your baseline, not something to repeat after every edit
 2. Read the failing file(s) — max 2 files unless the defect entry names more

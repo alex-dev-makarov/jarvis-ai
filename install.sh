@@ -156,13 +156,6 @@ else
   echo "     or copy jarvis.context.md.example manually."
 fi
 
-# ── Step 3.5: Copy research/perf-patterns.md into the project ─────
-#
-# jarvis-perf reads this file directly from the project (grep-style,
-# same as scripts/security-agent.mjs) — it is NOT passed via subagent
-# brief the way jarvis.context.md is. So it needs to physically live in
-# the project, not just in ~/.claude*/. Never overwrites an existing copy
-# — if the user has customized it, their version wins.
 
 if [ -n "$PROJECT_ROOT" ]; then
   RESEARCH_DIR="$PROJECT_ROOT/research"
@@ -178,6 +171,13 @@ if [ -n "$PROJECT_ROOT" ]; then
     echo "→ Copied research/perf-patterns.md into the project (for jarvis-perf)"
     echo "  ℹ  Add to git: git add research/perf-patterns.md"
   fi
+fi
+
+# ── Step 3.6: bookkeeping script → <project>/.jarvis/bin ──────────
+if [ -n "$PROJECT_ROOT" ] && [ -f "$SCRIPT_DIR/scripts/jarvis.mjs" ]; then
+  mkdir -p "$PROJECT_ROOT/.jarvis/bin"
+  cp "$SCRIPT_DIR/scripts/jarvis.mjs" "$PROJECT_ROOT/.jarvis/bin/jarvis.mjs"
+  echo "  ✓ .jarvis/bin/jarvis.mjs (bookkeeping script)"
 fi
 
 # ── Step 4: File-isolation sandbox (macOS) ────────────────────────
