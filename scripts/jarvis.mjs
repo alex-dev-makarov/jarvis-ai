@@ -12,6 +12,8 @@
 //   round <PR> <go-ahead|revise|abstain> [major|minor] [--branch <slug>]
 //   check [typecheck] [lint] [test] [--files a.ts b.ts]
 //   overview                                every branch's ledger, one table
+//   migrate                                 move legacy docs/{tasks,defects,questions,session-log}.md
+//                                           into this branch's ledger dir (never overwrites)
 //
 // Zero dependencies. Runs only git and this repo's own package.json
 // scripts (plus eslint on files you name) — no arbitrary command passthrough.
@@ -149,7 +151,9 @@ function cmdCtx() {
   }
   out(`ledger: ${c.dir}/${k.exists ? '' : '   (no tasks.md yet — empty ledger, P-plan true)'}`);
   if (c.git && fs.existsSync('docs/tasks.md')) {
-    out('legacy: docs/tasks.md exists unscoped — tell the user to move it (ledger-location.md); do not read it');
+    out(k.exists
+      ? 'legacy: docs/tasks.md exists unscoped alongside a branch ledger — ignore it; do not read it'
+      : 'legacy: docs/tasks.md exists unscoped — run `jarvis.mjs migrate` to move it into this branch ledger, then re-run ctx');
   }
   out(`tasks:  planned ${k.planned} | wip ${k.wip} | done ${k.done} | blocked ${k.blocked}`);
   out(`defects: open ${k.open} | wip ${k.dwip}     questions: asked ${k.asked}`);
@@ -327,8 +331,21 @@ function cmdOverview() {
 
 // ── main ───────────────────────────────────────────────────────────────
 const [cmd, ...args] = process.argv.slice(2);
-const table = { ctx: cmdCtx, set: () => cmdSet(args), round: () => cmdRound(args), check: () => cmdCheck(args), overview: cmdOverview };
+function cmdMigrate() {
+  const c = resolve();
+  if (!c.git) die('not a git repo — nothing to migrate');
+  if (fs.existsSync(path.join(c.dir, 'tasks.md'))) die(`${c.dir}/tasks.md already exists — refusing to overwrite; resolve manually`);
+  if (!fs.existsSync('docs/tasks.md')) die('no legacy docs/tasks.md — nothing to migrate');
+  fs.mkdirSync(c.dir, { recursive: true });
+  for (const f of ['tasks.md', 'defects.md', 'questions.md', 'session-log.md']) {
+    const from = path.join('docs', f), to = path.join(c.dir, f);
+    if (fs.existsSync(from) && !fs.existsSync(to)) { fs.renameSync(from, to); out(`moved ${from} -> ${to}`); }
+  }
+  out('done — run ctx again');
+}
+
+const table = { migrate: cmdMigrate, ctx: cmdCtx, set: () => cmdSet(args), round: () => cmdRound(args), check: () => cmdCheck(args), overview: cmdOverview };
 if (!table[cmd]) {
-  die('usage: jarvis.mjs <ctx | set | round | check | overview>  — see header comment');
+  die('usage: jarvis.mjs <ctx | set | round | check | overview | migrate>  — see header comment');
 }
 table[cmd]();
