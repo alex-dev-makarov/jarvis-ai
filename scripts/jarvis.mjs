@@ -334,7 +334,11 @@ const [cmd, ...args] = process.argv.slice(2);
 function cmdMigrate() {
   const c = resolve();
   if (!c.git) die('not a git repo — nothing to migrate');
-  if (fs.existsSync(path.join(c.dir, 'tasks.md'))) die(`${c.dir}/tasks.md already exists — refusing to overwrite; resolve manually`);
+  const dest = path.join(c.dir, 'tasks.md');
+  if (fs.existsSync(dest)) {
+    if (fs.readFileSync(dest, 'utf8').trim() !== '') die(`${dest} already has content — refusing to overwrite; resolve manually`);
+    fs.rmSync(dest); // empty placeholder — safe to replace
+  }
   if (!fs.existsSync('docs/tasks.md')) die('no legacy docs/tasks.md — nothing to migrate');
   fs.mkdirSync(c.dir, { recursive: true });
   for (const f of ['tasks.md', 'defects.md', 'questions.md', 'session-log.md']) {
