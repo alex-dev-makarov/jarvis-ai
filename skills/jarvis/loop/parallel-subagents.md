@@ -89,7 +89,7 @@ When all subagents in a group return:
    If a merge conflicts — this means Step 1's independence judgment was
    wrong. Resolve the conflict yourself (orchestrator), do not dispatch a
    third subagent to fix a merge conflict from a wrongly-parallelized pair.
-3. Update docs/tasks.md / docs/defects.md status for each item as it normally would
+3. Update tasks.md / defects.md status (branch-scoped, ledger-location.md) for each item as it normally would
    after I1/I4 — `[x] done` or defect `resolved`, per the loop the caller
    came from
 4. Proceed to review (I2) for the whole merged diff together, not one

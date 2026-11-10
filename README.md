@@ -13,7 +13,8 @@ jarvis.context.md.example    ← per-project rules template (Review/Executor Rul
 │   ├── fix.md                 /jarvis:fix — direct bugfixer call, skips planner/executor
 │   ├── plan.md               /jarvis:plan — plan only
 │   ├── review.md             /jarvis:review — review git diff
-│   ├── status.md             /jarvis:status — show ledger state
+│   ├── status.md             /jarvis:status — show ledger state (this branch)
+│   ├── overview.md           /jarvis:overview — all branches at once, read-only
 │   ├── reviewers.md          /jarvis:reviewers — quick-test a model on disk
 │   ├── security.md           /jarvis:security — SOC 2-mapped audit (Level 2)
 │   └── perf.md                /jarvis:perf — performance audit, findings only
@@ -26,14 +27,21 @@ jarvis.context.md.example    ← per-project rules template (Review/Executor Rul
 │   ├── jarvis-security.md       model: opus   — SOC 2 contextual audit, read-only
 │   ├── jarvis-visual-planner.md model: fable  — screenshot→plan (CONDITIONAL)
 │   └── jarvis-perf.md           model: sonnet — perf audit, findings only, read-only
-├── skills/jarvis/           ← loop discipline + ledger format (loaded via @ref)
-│   ├── ledger/
-│   │   ├── tasks-schema.md
-│   │   └── defects-schema.md
-│   └── loop/
-│       ├── outer-loop.md        ← task drain + standalone defect drain (O2.5)
-│       ├── inner-loop.md        ← I0 image detect → execute → review → fix
-│       └── session-end.md
+├── skills/jarvis/           ← loop discipline + ledger format
+│   ├── ledger/                  (only the first 2 load at startup;
+│   │   ├── ledger-location.md    the rest are read on demand — see
+│   │   ├── tasks-schema.md       advance.md's lazy-load table)
+│   │   ├── defects-schema.md
+│   │   ├── questions-schema.md
+│   │   ├── completed-log-schema.md
+│   │   └── session-log-schema.md
+│   ├── loop/
+│   │   ├── outer-loop.md        ← O0 resolve ledger · task + defect drain (O2.5)
+│   │   ├── inner-loop.md        ← I0 image detect → execute → review → fix
+│   │   ├── parallel-subagents.md
+│   │   └── session-end.md
+│   └── knowledge/
+│       └── data-structures.md
 ├── scripts/
 │   ├── apply-tiers.mjs       ← reads jarvis.toml, writes model: into agents/*.md
 │   ├── security-agent.mjs    ← Level 1 deterministic scanner (per-project)
@@ -85,17 +93,8 @@ orchestrator's context defeats the purpose (you'd pay the context cost twice).
 ./install.sh
 
 # Per-project CLAUDE_CONFIG_DIR setups (~/.claude-<name>/):
-<<<<<<< HEAD
-<<<<<<< HEAD
-./install.sh your app
-=======
 ./install.sh client
-./install.sh client tg-octopus finfamily   # multiple at once
->>>>>>> 5a83346 (Initial Jarvis harness)
-=======
-./install.sh client
-./install.sh client tg-octopus finfamily   # multiple at once
->>>>>>> c807dc6 (new harness)
+./install.sh client finfamily   # multiple at once
 ```
 
 Restart Claude Code fully after installing — subagent files are only loaded
@@ -158,12 +157,50 @@ Other commands:
 /jarvis:review                    # adversarial code review on git diff
 /jarvis:status                    # show ledger state
 /jarvis:security                  # SOC 2-mapped security audit (Level 2 AI)
-<<<<<<< HEAD
-=======
 /jarvis:perf src/components/Foo.tsx  # performance audit — findings only, never edits code
->>>>>>> c807dc6 (new harness)
+/jarvis:overview                  # cross-branch view of every ledger at once
 /jarvis:reviewers opus-5          # quick-test a new model release, see below
 ```
+
+## Where the ledger lives (branch-scoped)
+
+Two branches working at once used to share one `docs/tasks.md` and corrupt
+each other — `feat-auth`'s PR-03 landing in the same table as `feat-i18n`'s.
+Each branch now gets its own directory:
+
+```
+docs/jarvis/<branch-slug>/tasks.md        ← per branch
+docs/jarvis/<branch-slug>/defects.md
+docs/jarvis/<branch-slug>/questions.md
+.jarvis/<branch-slug>/session-log.md
+docs/completed-log.md                     ← SHARED: shipped history
+```
+
+`<branch-slug>` is the branch name with `/` → `-`, lowercased
+(`feat/auth-otp` → `feat-auth-otp`). Keep it out of git:
+
+```bash
+echo 'docs/jarvis/' >> .git/info/exclude
+echo '.jarvis/'     >> .git/info/exclude
+```
+
+**Optional: version the ledger without polluting any code branch.** Put it
+in a worktree pinned to an orphan branch — nothing ever merges it into
+`main`, and it doesn't follow your `git checkout`:
+
+```bash
+git worktree add --orphan -b jarvis-ledger .jarvis-ledger
+(cd .jarvis-ledger && git commit --allow-empty -m "Jarvis ledger root")
+echo '.jarvis-ledger/' >> .git/info/exclude
+```
+
+The harness prefers `.jarvis-ledger/` when it exists and silently falls
+back to `docs/jarvis/` when it doesn't — so this is opt-in per clone, and
+skipping it costs nothing. Never let an agent create the worktree for you;
+it's a deliberate setup step.
+
+`/jarvis:status` reports the current branch's ledger; `/jarvis:overview`
+reports every branch's at once (grep counts only, no full file reads).
 
 ## Model tiers (cost control without leaving your subscription)
 

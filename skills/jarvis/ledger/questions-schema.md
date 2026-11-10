@@ -1,10 +1,12 @@
 # Questions Ledger Schema
 
-## File: `./docs/questions.md`
+## File: `<ledger-root>/<branch-slug>/questions.md`
+
+Path per `ledger-location.md` — branch-scoped, created on first write.
 
 Durable record of every clarifying question `jarvis-planner` asked and how
-the user answered. Create if it does not exist (including the `docs/`
-directory). Never delete entries — this is a history, not a scratch pad.
+the user answered. Never delete entries — this is a history, not a scratch
+pad.
 
 ## Why this exists
 
@@ -12,11 +14,11 @@ directory). Never delete entries — this is a history, not a scratch pad.
 jarvis-planner.md Step 2) when a request is ambiguous — but once the user
 answers in chat, that exchange normally only lives in conversation history,
 which gets summarized/compacted away over a long session. This file makes
-the question AND the answer durable — you can open `docs/questions.md`
+the question AND the answer durable — you can open `questions.md`
 weeks later and see exactly what was asked and what was decided, without
 digging through old chat transcripts.
 
-This is a genuinely different concern from `docs/tasks.md`'s Completed
+This is a genuinely different concern from `tasks.md`'s Completed
 entries: a Completed entry explains what shipped and why; this file
 explains what was asked BEFORE anything shipped, and what the user chose
 among the options presented.
@@ -67,9 +69,9 @@ back-and-forth that doesn't affect what gets built.
 
 ## What this is NOT for
 
-- Bugfixer's `BLOCKED`/`DECLINED` reports — those belong in `docs/defects.md`
+- Bugfixer's `BLOCKED`/`DECLINED` reports — those belong in `defects.md`
   (they're about a specific defect, not a planning ambiguity)
-- Security findings needing confirmation — those live in `docs/defects.md`
+- Security findings needing confirmation — those live in `defects.md`
   with `RequiresConfirmation: yes`, per defects-schema.md
 - Casual conversation not tied to a specific planning decision — this file
   is for decisions that shaped the plan, not a transcript of everything said

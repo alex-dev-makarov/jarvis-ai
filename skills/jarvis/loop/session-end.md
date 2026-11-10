@@ -37,7 +37,7 @@ Log must contain:
 - milestones and PRs worked this session
 - review rounds per PR: what was found, what was fixed
 - deferred defects and why
-- final ledger state (copy of docs/tasks.md milestone/breakdown sections)
+- final ledger state (copy of tasks.md milestone/PR tables)
 - if blocked: exact question the user must resolve
 - `Metrics: review rounds PR-01:N PR-02:N; defects major:N minor:N nit:N`
 

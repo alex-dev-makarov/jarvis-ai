@@ -1,9 +1,11 @@
 # Tasks Ledger Schema
 
-## File: `./docs/tasks.md`
+## File: `<ledger-root>/<branch-slug>/tasks.md`
 
-The authoritative ledger of all planned and completed work.
-Create if it does not exist (including the `docs/` directory). Never
+Path per `ledger-location.md` — branch-scoped, created on first write. Each branch
+gets its own table — two branches never share one ledger.
+
+The authoritative ledger of all planned and completed work. Never
 overwrite — always append.
 
 ## Why this schema is a TABLE, not prose
@@ -21,7 +23,7 @@ is what happens when the format itself allows prose at all.
 table row with fixed columns. A table row cannot silently grow into a
 paragraph — there is no column for one. Full reasoning, code mechanisms,
 quoted line numbers, and "why we rejected X" narratives ALWAYS go in the
-plan doc (`docs/drafts/YYYYMMDD-HHMM-<name>.md`), never here, because
+plan doc (`<ledger-root>/<branch-slug>/drafts/YYYYMMDD-HHMM-<name>.md`), never here, because
 there is structurally nowhere in this file's format to put them.
 
 ## Status markers
@@ -39,8 +41,8 @@ One row per milestone.
 ```
 | Milestone | Status | Plan |
 |---|---|---|
-| M1 — Auth OTP Telegram login | done | docs/drafts/20260811-1730-auth-drawer-otp-telegram-login.md |
-| M2 — RTK Query baseApi consolidation | in progress | docs/drafts/20260812-2123-rtk-query-baseapi-consolidation.md |
+| M1 — Auth OTP Telegram login | done | drafts/20260811-1730-auth-otp.md |
+| M2 — RTK Query baseApi consolidation | in progress | drafts/20260812-2123-rtk-baseapi.md |
 ```
 
 ### 2. Current milestone — PR table
@@ -138,12 +140,12 @@ One row per finished PR, pointing to the full report — never inline detail.
 ```
 
 Why the split: a full prose report per PR (verification traces, notes,
-metrics, cost) bloats docs/tasks.md fast — after 20 PRs, scanning for
+metrics, cost) bloats tasks.md fast — after 20 PRs, scanning for
 "what's still open" means scrolling past 20 dense paragraphs. tasks.md
 stays a scannable ledger; completed-log.md is where the detail lives for
 whoever wants to read it later.
 
-## What NEVER appears in docs/tasks.md — goes in the plan doc instead
+## What NEVER appears in tasks.md — goes in the plan doc instead
 
 - Code mechanisms, quoted line numbers, function names beyond a File cell
 - Multi-sentence "why" explanations for any decision
@@ -151,7 +153,7 @@ whoever wants to read it later.
 - Risk analysis, verification protocols, acceptance criteria prose
 - "Explicitly out of scope" narrative — use the Rejected table above instead
 - Any paragraph. If you're writing a paragraph, stop — it belongs in
-  `docs/drafts/YYYYMMDD-HHMM-<name>.md`, and this file gets a table row
+  `<ledger-root>/<branch-slug>/drafts/YYYYMMDD-HHMM-<name>.md`, and this file gets a table row
   with `see plan doc` in whichever cell would otherwise hold it.
 
 ## Rules
@@ -160,7 +162,7 @@ whoever wants to read it later.
 - Flip `[~]` → `[x]` AND add the Completed table row when a PR merges
 - Never delete rows — append only
 - When milestone closes: migrate its PR table to
-  `./docs/archive/tasks-<milestone-id>.md`, leave the Milestones row
+  `docs/archive/tasks-<milestone-id>.md` (shared, not branch-scoped), leave the Milestones row
   pointing there; completed-log.md entries stay put (already archival)
 
 ## Skeleton
@@ -174,7 +176,7 @@ Status: `[ ]` planned · `[~]` in progress · `[x]` done · `[!]` blocked
 
 | Milestone | Status | Plan |
 |---|---|---|
-| M1 — <goal> | in progress | docs/drafts/YYYYMMDD-HHMM-m1.md |
+| M1 — <goal> | in progress | drafts/YYYYMMDD-HHMM-m1.md |
 
 ## M1 — PR table
 

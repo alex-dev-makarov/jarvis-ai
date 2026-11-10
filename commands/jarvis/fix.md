@@ -20,7 +20,7 @@ burns tool calls trying to figure out the actual bug (see jarvis-bugfixer.md
 
 Good fit: "TypeScript error in src/hooks/usePagination.ts:12", "this test
 is failing: `should return empty array when...`", "the modal doesn't close
-on Escape key", "fix the defect PR-02-D03 from docs/defects.md".
+on Escape key", "fix the defect PR-02-D03 from this branch's defects.md".
 
 Bad fit: "make the dashboard better", "add error handling" (too vague —
 what's actually broken?), "refactor this file" (not a fix, that's scope
@@ -33,7 +33,8 @@ creep bugfixer explicitly avoids).
 Do NOT invoke any subagent for this step — it's plain tool use:
 
 - If `$ARGUMENTS` names a defect ID (e.g. "PR-02-D03") → read that exact
-  entry from `docs/defects.md`
+  entry from this branch's `defects.md` (path per ledger-location.md —
+  `<ledger-root>/<branch-slug>/defects.md`)
 - If `$ARGUMENTS` describes a failing test → run it once to capture the
   actual error: `npx jest --testPathPattern=<guess from description> 2>&1 | tail -80`
 - If `$ARGUMENTS` names a file + line or error message directly → that's
@@ -76,5 +77,6 @@ cycle this command exists to avoid.
 - Does not invoke jarvis-planner or jarvis-executor — if the request needs
   either, redirect to `/jarvis:advance` instead of forcing it through here
 - Does not run a review pass automatically after the fix
-- Does not touch `docs/tasks.md` — this is defect-fixing, not task-tracking
-  (it DOES update `docs/defects.md` if the fix closes a tracked defect)
+- Does not touch `tasks.md` — this is defect-fixing, not task-tracking
+  (it DOES update this branch's `defects.md` if the fix closes a tracked
+  defect)

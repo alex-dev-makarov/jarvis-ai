@@ -1,28 +1,32 @@
 # Completed Log Schema
 
-## File: `./docs/completed-log.md`
+## File: `docs/completed-log.md`
+
+**SHARED across all branches** — unlike tasks/defects/questions this is
+NOT branch-scoped (ledger-location.md, "What stays SHARED"). A PR that
+shipped is part of the project's record; scoping it per branch would mean
+the record vanishes when the branch is deleted.
 
 Detailed, append-only report for every PR that reaches `go-ahead`. Create
-if it does not exist (including the `docs/` directory). Never overwrite —
-always append.
+if it does not exist. Never overwrite — always append.
 
-## Why this is separate from docs/tasks.md
+## Why this is separate from tasks.md
 
-`docs/tasks.md` is the ledger you scan constantly — every O2/O3/O4 cycle
+`tasks.md` is the ledger you scan constantly — every O2/O3/O4 cycle
 reads it to decide what's next. A full prose report per PR (what shipped,
 verification traces, notes, cost) bloats that file fast: after 20 PRs,
 scanning tasks.md for "what's still open" means scrolling past 20 dense
 paragraphs you don't need for that question.
 
 So the split is:
-- **`docs/tasks.md`** — one line per completed PR, just enough to know it
+- **`tasks.md`** (branch-scoped) — one line per completed PR, just enough to know it
   shipped and where to look for detail. This is what the loop reads.
 - **`docs/completed-log.md`** — the full report per PR: what shipped,
   verification, notes, metrics, cost, approval. This is what a HUMAN reads
   when they want to understand a specific PR later — onboarding, an
   incident retro, or just "why did we do it this way."
 
-## What goes in docs/tasks.md instead (replaces the old inline Completed block)
+## What goes in tasks.md instead (replaces the old inline Completed block)
 
 Per tasks-schema.md's table format — a row, not a bullet:
 
@@ -55,7 +59,7 @@ Three cells. Scope, pointer, nothing else.
 ```
 
 Anchor each section with a heading Claude Code/GitHub-flavored markdown can
-link to (`## PR-01 — ...` → `#pr-01`), so `docs/tasks.md`'s pointer actually
+link to (`## PR-01 — ...` → `#pr-01`), so `tasks.md`'s pointer actually
 resolves to the right spot when opened.
 
 ## Cost tracking — be honest about what's knowable
@@ -89,6 +93,6 @@ say so plainly rather than producing a plausible number.
 
 ## Migration note
 
-If `docs/tasks.md` already has old-style inline Completed blocks from
+If `tasks.md` already has old-style inline Completed blocks from
 before this schema existed, leave them as-is — don't retroactively split
 them into completed-log.md. Apply the new split going forward only.

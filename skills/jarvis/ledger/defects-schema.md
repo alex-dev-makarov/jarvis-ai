@@ -1,10 +1,11 @@
 # Defects Ledger Schema
 
-## File: `./docs/defects.md`
+## File: `<ledger-root>/<branch-slug>/defects.md`
+
+Path per `ledger-location.md` — branch-scoped, created on first write.
 
 Audit trail of every defect found by reviewer or discovered during work.
-Create if it does not exist (including the `docs/` directory). Never
-delete entries — only update status.
+Never delete entries — only update status.
 
 ## Status lifecycle
 
@@ -94,4 +95,4 @@ that proves the bug exists. Fix is complete only when that test passes.
 - `wontfix` requires a rationale sentence — never left blank
 - Cross-round regressions get a NEW defect ID — never re-open closed ones
 - When milestone closes: migrate resolved groups to
-  `./docs/archive/defects-<milestone-id>.md`, leave one-line stub
+  `docs/archive/defects-<milestone-id>.md` (shared), leave one-line stub

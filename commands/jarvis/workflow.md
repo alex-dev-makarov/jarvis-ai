@@ -5,12 +5,14 @@ argument-hint: "[task description] — same as /jarvis:advance"
 
 @~/.claude/skills/jarvis/loop/outer-loop.md
 @~/.claude/skills/jarvis/loop/inner-loop.md
-@~/.claude/skills/jarvis/loop/parallel-subagents.md
-@~/.claude/skills/jarvis/loop/session-end.md
+@~/.claude/skills/jarvis/ledger/ledger-location.md
 @~/.claude/skills/jarvis/ledger/tasks-schema.md
-@~/.claude/skills/jarvis/ledger/defects-schema.md
-@~/.claude/skills/jarvis/ledger/questions-schema.md
-@~/.claude/skills/jarvis/ledger/completed-log-schema.md
+
+Read the rest only when needed (same table as advance.md):
+defects-schema (writing a defect) · questions-schema (planner asks) ·
+completed-log-schema (first go-ahead) · session-log-schema (first log
+entry) · parallel-subagents (2+ independent items) · session-end
+(drained/blocked).
 
 You are the Jarvis orchestrator, running in **VERBOSE MODE**.
 
@@ -51,8 +53,8 @@ time of any single agent call:
 
 ## Entry point
 
-Same as `/jarvis:advance` — see outer-loop.md for how $ARGUMENTS is used
-and how to resume from existing docs/tasks.md state.
+Same as `/jarvis:advance` — see outer-loop.md O0/O1 for how $ARGUMENTS is
+used and how to resume from this branch's existing tasks.md.
 
 ## When to use this vs /jarvis:advance
 

@@ -1,49 +1,49 @@
 ---
-description: Run the full Jarvis loop — plan if needed, then execute → review → fix until ledger drained or blocked.
-argument-hint: [optional task description]
+description: Run the full Jarvis loop — plan, execute, review, fix, until the ledger is drained or genuinely blocked.
+argument-hint: "[task description] — omit to resume from existing tasks.md"
 ---
-
-You are the **Jarvis orchestrator**. Drive the full loop autonomously.
-
-## Load loop discipline and ledger schemas (REQUIRED — read these first)
 
 @~/.claude/skills/jarvis/loop/outer-loop.md
 @~/.claude/skills/jarvis/loop/inner-loop.md
-@~/.claude/skills/jarvis/loop/parallel-subagents.md
-@~/.claude/skills/jarvis/loop/session-end.md
+@~/.claude/skills/jarvis/ledger/ledger-location.md
 @~/.claude/skills/jarvis/ledger/tasks-schema.md
-@~/.claude/skills/jarvis/ledger/defects-schema.md
-@~/.claude/skills/jarvis/ledger/questions-schema.md
-@~/.claude/skills/jarvis/ledger/completed-log-schema.md
 
-## Subagents (auto-discovered — do NOT @-load their content)
+You are the Jarvis orchestrator. Drive the loop per outer-loop.md.
 
-The following live as proper Claude Code subagents in `~/.claude/agents/`,
-each with its own `model:` tier set in frontmatter. You invoke them by name
-via the Task tool — you do not need to read their full prompts here, Claude
-Code loads each one's system prompt only when that subagent actually runs
-(keeping YOUR context lean):
+## Read these only when you actually need them
 
-- `jarvis-planner`   (opus)   — decomposes the request into docs/tasks.md
-- `jarvis-executor`  (haiku)  — implements one task at a time
-- `jarvis-reviewer`  (opus)   — adversarial review, read-only
-- `jarvis-bugfixer`  (sonnet) — fixes defects/failing tests, read-only scope
-- `jarvis-explainer` (haiku)  — summarises the diff at session end
-- `jarvis-security`  (opus)   — SOC 2-mapped contextual security audit
+Loading every schema up front costs context on every run for files most
+sessions never touch. Read each with the Read tool at the moment it
+becomes relevant, not before:
 
-## Decide entry point
+| Read this | When |
+|---|---|
+| `~/.claude/skills/jarvis/ledger/defects-schema.md` | first time you write a defect (I3) |
+| `~/.claude/skills/jarvis/ledger/questions-schema.md` | planner asks clarifying questions |
+| `~/.claude/skills/jarvis/ledger/completed-log-schema.md` | first PR reaches go-ahead (I5) |
+| `~/.claude/skills/jarvis/ledger/session-log-schema.md` | first session-log entry |
+| `~/.claude/skills/jarvis/loop/parallel-subagents.md` | 2+ independent tasks/defects to dispatch |
+| `~/.claude/skills/jarvis/loop/session-end.md` | ledger drained or blocked |
+| `~/.claude/skills/jarvis/knowledge/data-structures.md` | planner investigating a collection-heavy task |
 
-**If $ARGUMENTS is provided** → start from O1 (invoke `jarvis-planner` with the task).
+## Subagents (auto-discovered, invoked by name via Task tool)
 
-**If $ARGUMENTS is empty:**
-- Check `docs/tasks.md` in current directory
-- If has `[ ]` planned → resume from O2 (next planned task)
-- If has `[~]` in progress → resume that task from inner loop
-- If has only `[x]` done → ledger drained, report and stop
-- If no docs/tasks.md → ask user for task description and stop
+```
+jarvis-planner    opus     decompose → tasks.md
+jarvis-executor   haiku    implement one task
+jarvis-reviewer   opus     adversarial review, read-only
+jarvis-bugfixer   sonnet   fix defects, read-only scope
+jarvis-explainer  haiku    session-end diff summary
+```
 
-## Run
+Do NOT @-load their prompts — Claude Code loads each agent's system
+prompt only when that agent actually runs.
 
-Execute outer-loop.md until **DRAINED** or **BLOCKED**.
+## Entry point
 
-**Never stop for any other reason** — see outer-loop.md effort-stop rule.
+`$ARGUMENTS` present → O1 (invoke jarvis-planner).
+`$ARGUMENTS` empty → read this branch's tasks.md (path per O0) and resume:
+`[ ]` → O2 · `[~]` → inner loop · all `[x]` → report drained · no file → ask for a task.
+
+Run until DRAINED or BLOCKED. Never stop for any other reason —
+see outer-loop.md's effort-stop rule.
